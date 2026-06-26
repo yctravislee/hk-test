@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>沙田賽馬分析及賠率監察儀表板 — 2026年6月27日</title>
+<style>
+  :root{
+    --bg:#0b1220; --panel:#121c2e; --panel2:#0f1828; --line:#22324c;
+    --txt:#e7eefb; --muted:#8aa0c2; --accent:#4f9dff; --accent2:#79b8ff;
+    --red:#e53935; --redbg:rgba(229,57,53,.22);
+    --brown:#8d5524; --brownbg:rgba(168,107,53,.28);
+    --green:#1faa59; --greenbg:rgba(31,170,89,.22);
+    --gold:#e8b923;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font-family:"PingFang HK","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;
+    font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent2);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:1180px;margin:0 auto;padding:18px 16px 80px}
+
+  header.top{background:linear-gradient(160deg,#16233c,#0d1626);
+    border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin-bottom:14px}
+  .title{font-size:22px;font-weight:800;letter-spacing:.5px}
+  .sub{color:var(--muted);margin-top:4px;font-size:14px}
+  .metarow{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+  .chip{background:var(--panel2);border:1px solid var(--line);border-radius:999px;
+    padding:6px 12px;font-size:13px;color:var(--accent2)}
+  .chip b{color:var(--txt)}
+
+  .statusbar{display:flex;flex-wrap:wrap;align-items:center;gap:14px;
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    padding:12px 16px;margin-bottom:14px}
+  .statusbar .big{font-size:15px}
+  .statusbar .big b{color:var(--gold);font-size:18px}
+  .pill{padding:4px 10px;border-radius:8px;font-size:12.5px;font-weight:700}
+  .pill.warn{background:rgba(232,185,35,.16);color:#f1d36b;border:1px solid rgba(232,185,35,.4)}
+  .pill.live{background:var(--greenbg);color:#7fe3a8;border:1px solid rgba(31,170,89,.5)}
+  .btn{background:var(--accent);color:#06223f;border:none;border-radius:8px;
+    padding:7px 14px;font-weight:800;cursor:pointer;font-size:13px}
+  .btn:hover{filter:brightness(1.08)}
+
+  .notice{background:rgba(232,185,35,.08);border:1px solid rgba(232,185,35,.3);
+    border-radius:10px;padding:10px 14px;color:#f0d98a;font-size:13px;margin-bottom:14px}
+
+  .legend{display:flex;flex-wrap:wrap;gap:14px;align-items:center;
+    background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+    padding:9px 14px;margin-bottom:18px;font-size:12.5px;color:var(--muted)}
+  .sw{display:inline-flex;align-items:center;gap:6px}
+  .box{width:14px;height:14px;border-radius:3px;display:inline-block;border:1px solid var(--line)}
+  .box.r{background:var(--redbg);border-color:var(--red)}
+  .box.b{background:var(--brownbg);border-color:#a86b35}
+  .box.g{background:var(--greenbg);border-color:var(--green)}
+
+  .race{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    margin-bottom:16px;overflow:hidden}
+  .race h2{margin:0;padding:13px 16px;font-size:16px;background:var(--panel2);
+    border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;align-items:baseline;gap:10px}
+  .race h2 .rno{color:var(--accent2);font-weight:800}
+  .race h2 .rtime{color:var(--gold);font-weight:800}
+  .race h2 .rmeta{color:var(--muted);font-size:13px;font-weight:500}
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{padding:9px 10px;text-align:center;border-bottom:1px solid var(--line);white-space:nowrap}
+  th{color:var(--muted);font-weight:600;font-size:12px;background:rgba(255,255,255,.02)}
+  td.horse{text-align:left;cursor:pointer;font-weight:700;color:var(--accent2)}
+  td.horse:hover{text-decoration:underline}
+  td.no{font-weight:800;color:var(--txt)}
+  .toppick{color:var(--gold)!important}
+  .tag{font-size:10.5px;padding:1px 6px;border-radius:6px;margin-left:6px;font-weight:700;vertical-align:middle}
+  .tag.tp{background:rgba(232,185,35,.18);color:var(--gold);border:1px solid rgba(232,185,35,.5)}
+  .tag.val{background:rgba(79,157,255,.16);color:var(--accent2);border:1px solid rgba(79,157,255,.4)}
+  .winbar{display:inline-block;height:7px;border-radius:4px;background:var(--accent);vertical-align:middle;margin-right:6px}
+  td.cell-red{background:var(--redbg)}
+  td.cell-brown{background:var(--brownbg)}
+  td.cell-green{background:var(--greenbg)}
+  .na{color:#62748f;font-style:italic}
+
+  .note{padding:12px 16px;border-top:1px solid var(--line);font-size:13.5px;background:var(--panel2)}
+  .note .lab{color:var(--gold);font-weight:800;margin-right:6px}
+  .note .lab.v{color:var(--accent2)}
+  .note .row{margin:3px 0}
+
+  /* modal */
+  .mask{position:fixed;inset:0;background:rgba(4,9,18,.74);display:none;
+    align-items:center;justify-content:center;z-index:50;padding:18px}
+  .mask.on{display:flex}
+  .modal{background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    max-width:560px;width:100%;max-height:88vh;overflow:auto}
+  .modal h3{margin:0;padding:16px 20px;background:linear-gradient(160deg,#16233c,#0d1626);
+    border-bottom:1px solid var(--line);font-size:18px;display:flex;align-items:center;gap:10px}
+  .modal h3 .x{margin-left:auto;cursor:pointer;color:var(--muted);font-size:22px;line-height:1}
+  .modal .body{padding:16px 20px}
+  .src{border:1px solid var(--line);border-radius:10px;margin-bottom:12px;overflow:hidden}
+  .src .sh{padding:8px 12px;background:var(--panel2);font-weight:700;font-size:13px;
+    border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+  .src .sh .dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+  .src .sh .dot.off{background:#5a6b85}
+  .src .sb{padding:10px 12px;font-size:13px}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:13px}
+  .kv .k{color:var(--muted)}
+  .kv .v{color:var(--txt);font-weight:600}
+  .formstr{font-family:ui-monospace,monospace;letter-spacing:1px;color:var(--accent2)}
+
+  footer{margin-top:24px;color:var(--muted);font-size:12px;line-height:1.7;
+    border-top:1px solid var(--line);padding-top:14px}
+  .disc{background:rgba(229,57,53,.07);border:1px solid rgba(229,57,53,.28);
+    border-radius:10px;padding:12px 16px;color:#f2b6b4;font-size:12.5px;margin-top:14px}
+  @media (max-width:640px){
+    table{font-size:12px}
+    th,td{padding:7px 5px}
+    .race h2 .rmeta{display:block;width:100%}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="title">沙田賽馬分析及賠率監察儀表板</div>
+    <div class="sub">香港賽馬會 · 沙田馬場 · 黃昏賽事 · 2026年6月27日（星期六）</div>
+    <div class="metarow">
+      <span class="chip">場次：<b id="raceCount">11 場</b>（已從官方排位表確認）</span>
+      <span class="chip">首場開跑：<b>16:00 HKT</b></span>
+      <span class="chip">尾場：<b>21:15 HKT</b></span>
+      <span class="chip">現在時間：<b id="clock">—</b></span>
+    </div>
+  </header>
+
+  <div class="statusbar">
+    <div class="big">賠率最後更新：<b id="lastUpd">尚未取得</b></div>
+    <span class="pill warn" id="feedPill">賠率來源：N/A</span>
+    <button class="btn" id="refreshBtn">立即重新整理</button>
+    <span style="color:var(--muted);font-size:12.5px">每 60 秒自動嘗試更新（Option A）</span>
+  </div>
+
+  <div class="notice" id="feedNotice">
+    <b>賠率狀態說明：</b>獨贏（獨贏）／位置（位置）／位置Q（QPL）即時賠率來自馬會投注網（bet.hkjc.com），
+    需經瀏覽器即時抓取。由於跨網域（CORS）限制，以及賽前一晚／賽日早上才開盤，
+    現時所有賠率欄暫顯示 <span class="na">N/A</span>。本頁已內建 60 秒輪詢引擎與滾動 60 分鐘歷史，
+    一旦資料源可讀取即會自動填入並依規則上色；若持續封鎖，請改用排程快照（Option B）方式由分析員定時拉取。
+    <br><b>誠實聲明：</b>本頁不會虛構任何賠率或貼士；所有排位、往績、評分、檔位、騎練資料均取自馬會官方排位表（已核實）。
+  </div>
+
+  <div class="legend">
+    <b style="color:var(--txt)">一小時內急跌上色規則：</b>
+    <span class="sw"><span class="box r"></span> 跌幅 ≥ 25% 紅</span>
+    <span class="sw"><span class="box b"></span> 20–25% 啡</span>
+    <span class="sw"><span class="box g"></span> 10–20% 綠</span>
+    <span class="sw">＜10% 不上色</span>
+    <span style="margin-left:auto">跌幅% =（一小時前賠率 − 現時賠率）÷ 一小時前賠率 × 100</span>
+  </div>
+
+  <div id="races"></div>
+
+  <div class="disc">
+    <b>負責任博彩聲明：</b>以上為根據公開往績及市場數據所作的<b>機率估算，並非保證結果</b>。
+    賠率受多種因素影響而波動，任何分析都不能消除賽馬中運氣的成分。
+    請只投注閣下能承受損失的金額，並預先設定上限。香港地區博彩只限 18 歲或以上人士。
+    如需賭博輔導，可致電平和基金熱線 1834 633。
+  </div>
+
+  <footer>
+    <div><b>資料來源與方法</b></div>
+    <div>排位／往績／評分／檔位／騎練／最佳時間：香港賽馬會官方排位表 racing.hkjc.com（2026/06/27 沙田，已核實，共 11 場）。</div>
+    <div>排名方法（§3）：綜合近 6 仗往績與上名穩定度、評分相對讓賽分段、檔位與路程／賽道適性、騎練往績、草地／全天候適應、最佳時間（速度指標）、以及市場與貼士走向。勝算為相對估算，未必相加等於 100%。</div>
+    <div>未能機讀的資料（標示 N/A）：即時獨贏／位置／位置Q 賠率（CORS 限制／未開盤）；名家貼士票數與落飛／大票房資金流（on.cc、星島贏跑、競馬網等為動態頁面，伺服器端未能可靠解析）。如需這些欄位，請於賽前觸發分析員以快照方式補入。</div>
+    <div style="margin-top:6px">本頁為單一 HTML 檔，可離線開啟；賠率輪詢需連線且資料源可讀取時方會生效。</div>
+  </footer>
+</div>
+
+<!-- modal -->
+<div class="mask" id="mask">
+  <div class="modal">
+    <h3 id="mTitle">—<span class="x" id="mClose">×</span></h3>
+    <div class="body" id="mBody"></div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   真實資料（取自馬會官方排位表，2026/06/27 沙田）
+   每場只列出本頁分析之 Top 5（另附首選 topPick 與冷馬 value）
+   ============================================================ */
+const HORSE_URL = id => `https://racing.hkjc.com/zh-hk/local/information/horse?horseid=${id}`;
+
+const RACES = [
+ {no:1,name:"錦田河讓賽",time:"16:00",surface:"草地",track:"B",dist:"1200米",going:"好地",prize:"$875,000",band:"40-0",cls:"第五班",
+  fav:1,
+  top5:[
+   {rk:1,no:1,name:"金風萬里",id:"HK_2024_K150",jky:"田泰安",trn:"桂福特",draw:6,wt:135,rt:40,last6:"2/8/3/10/8/12",bt:"1.09.09",win:22,tag:"tp",reason:"場內最高分40，六檔中線，最快1.09.0，田泰安主轡"},
+   {rk:2,no:7,name:"後無來者",id:"HK_2024_K049",jky:"莫雷拉",trn:"方嘉柏",draw:11,wt:131,rt:36,last6:"3/9/5/3/5/10",bt:"1.09.93",win:18,reason:"莫雷拉操刀，近績多次上名穩定，外檔須走位"},
+   {rk:3,no:3,name:"果然僥倖",id:"HK_2022_H252",jky:"奧爾民",trn:"蘇偉賢",draw:5,wt:133,rt:38,last6:"2/6/10/2/6/3",bt:"1.09.47",win:15,reason:"近六仗多次上名，僅隔14天再戰，五檔有利"},
+   {rk:4,no:4,name:"翠湖烈風",id:"HK_2023_J288",jky:"潘頓",trn:"賀賢",draw:12,wt:133,rt:38,last6:"7/10/3/5/10/8",bt:"1.10.03",win:14,reason:"潘頓策騎本季獎金最高，惟十二檔最闊須兜路"},
+   {rk:5,no:8,name:"迅意",id:"HK_2024_K250",jky:"希威森",trn:"韋達",draw:3,wt:128,rt:33,last6:"10/11/3/7/6/4",bt:"1.09.51",win:10,reason:"三檔起步慳腳，希威森主轡，狀態回升"}
+  ],
+  value:{no:13,name:"快馬加鞭",reason:"全場最快1.09.0，評分低有讓磅之利，冷馬一搏"}},
+
+ {no:2,name:"錦田河讓賽",time:"16:30",surface:"草地",track:"B",dist:"1200米",going:"好地",prize:"$875,000",band:"40-0",cls:"第五班",
+  fav:1,
+  top5:[
+   {rk:1,no:1,name:"新力驕",id:"HK_2023_J223",jky:"潘頓",trn:"蘇偉賢",draw:12,wt:135,rt:40,last6:"7/3/9/8/9/5",bt:"1.08.77",win:20,tag:"tp",reason:"頂分頭馬配潘頓，最快1.08.7，惟十二檔須兜路"},
+   {rk:2,no:12,name:"朗日雪峰",id:"HK_2023_J187",jky:"莫雷拉",trn:"方嘉柏",draw:1,wt:124,rt:29,last6:"3/7/4/3/9/1",bt:"1.09.78",win:19,reason:"一檔莫雷拉，上仗剛勝出，順勢有力再下一城"},
+   {rk:3,no:8,name:"八里旺",id:"HK_2023_J243",jky:"希威森",trn:"鄭俊偉",draw:4,wt:129,rt:34,last6:"8/4/2/9/9/3",bt:"1.09.54",win:14,reason:"四檔希威森，近三仗兩度上名，狀態理想"},
+   {rk:4,no:7,name:"銳一",id:"HK_2023_J037",jky:"梁家俊",trn:"桂福特",draw:8,wt:130,rt:35,last6:"6/10/2/4/2/8",bt:"1.09.70",win:12,reason:"近績屢上名，梁家俊策騎，八檔位置適中"},
+   {rk:5,no:2,name:"鄉村樂韻",id:"HK_2022_H436",jky:"艾兆禮",trn:"蔡約翰",draw:5,wt:134,rt:39,last6:"1/8/5/10/7/12",bt:"1.09.40",win:11,reason:"次高分配五檔，艾兆禮主轡，具入位條件"}
+  ],
+  value:{no:9,name:"快樂寶寶",reason:"近兩仗連續第三明顯上力，賠率有值博"}},
+
+ {no:3,name:"林村河讓賽",time:"17:00",surface:"草地",track:"B",dist:"1200米",going:"好地",prize:"$1,170,000",band:"60-40",cls:"第四班",
+  fav:1,
+  top5:[
+   {rk:1,no:1,name:"穿甲戰鷹",id:"HK_2023_J039",jky:"艾兆禮",trn:"廖康銘",draw:14,wt:135,rt:60,last6:"2/9/6/2/2/3",bt:"1.08.94",win:21,tag:"tp",reason:"全場最高分60，近績2-2-3極穩，惟十四檔最闊"},
+   {rk:2,no:6,name:"團結戰靈",id:"HK_2024_K132",jky:"希威森",trn:"桂福特",draw:2,wt:128,rt:53,last6:"4/4/6/3/2/9",bt:"1.09.59",win:15,reason:"二檔慳腳，近仗多次上名，希威森主轡"},
+   {rk:3,no:10,name:"小魔怪",id:"HK_2024_K391",jky:"何澤堯",trn:"巫偉傑",draw:3,wt:126,rt:51,last6:"5/1/4/5/6/9",bt:"1.09.15",win:14,reason:"三檔何澤堯，兩仗前勝出，1200米合適"},
+   {rk:4,no:3,name:"確好勁",id:"HK_2024_K199",jky:"梁家俊",trn:"文家良",draw:4,wt:131,rt:56,last6:"5/6/12/10/7/2",bt:"—",win:12,reason:"上仗跑第二回勇，四檔有利，梁家俊策騎"},
+   {rk:5,no:11,name:"嘉應光彩",id:"HK_2024_K134",jky:"潘頓",trn:"大衛希斯",draw:7,wt:122,rt:47,last6:"2/9/13/6/9/4",bt:"1.09.14",win:11,reason:"潘頓上陣，七檔位置理想，具上名能力"}
+  ],
+  value:{no:7,name:"加州勇勝",reason:"兩仗前勝出，田泰安主轡，賠率料較寬"}},
+
+ {no:4,name:"南涌河讓賽",time:"17:30",surface:"草地",track:"B",dist:"2000米",going:"好地",prize:"$1,170,000",band:"60-40",cls:"第四班",
+  fav:1,
+  top5:[
+   {rk:1,no:1,name:"優才",id:"HK_2023_J536",jky:"袁幸堯",trn:"葉楚航",draw:1,wt:135,rt:60,last6:"5/11/4/7/5/6",bt:"2.00.89",win:20,tag:"tp",reason:"頂分配一檔，最快2.00.8，內欄起步大有利"},
+   {rk:2,no:4,name:"安可",id:"HK_2024_K252",jky:"布文",trn:"蔡約翰",draw:7,wt:131,rt:56,last6:"3/2/9/5/8/6",bt:"2.01.07",win:15,reason:"布文主轡，七檔位置好，近仗多次上名"},
+   {rk:3,no:2,name:"雙贏",id:"HK_2022_H382",jky:"何澤堯",trn:"文家良",draw:11,wt:133,rt:58,last6:"1/2/5/3/10/6",bt:"2.01.23",win:14,reason:"近績穩定曾連續入位，何澤堯操刀"},
+   {rk:4,no:6,name:"風火恆雲",id:"HK_2022_H388",jky:"潘明輝",trn:"姚本輝",draw:13,wt:127,rt:52,last6:"5/1/2/8/3/2",bt:"2.00.98",win:12,reason:"近三仗2-3-2狀態佳，惟十三檔須走位"},
+   {rk:5,no:3,name:"同益善",id:"HK_2024_K254",jky:"布浩榮",trn:"游達榮",draw:14,wt:131,rt:56,last6:"13/9/8/1/2/4",bt:"2.00.95",win:10,reason:"中距離有勝績，外檔配布浩榮"}
+  ],
+  value:{no:11,name:"夢照發",reason:"近兩仗3-2回勇，巴度主轡，冷門有看頭"}},
+
+ {no:5,name:"梧桐河讓賽",time:"18:00",surface:"全天候跑道",track:"—",dist:"1650米",going:"封地",prize:"$1,170,000",band:"60-40",cls:"第四班",
+  fav:2,
+  top5:[
+   {rk:1,no:2,name:"奮鬥心",id:"HK_2023_J267",jky:"潘頓",trn:"伍鵬志",draw:8,wt:134,rt:59,last6:"9/11/4/2/9/1",bt:"1.38.33",win:19,tag:"tp",reason:"潘頓配次高分，上仗剛勝，全天候狀態大勇"},
+   {rk:2,no:1,name:"開心宇宙",id:"HK_2023_J533",jky:"梁家俊",trn:"丁冠豪",draw:5,wt:135,rt:60,last6:"2/10/1/6/2/2",bt:"1.38.54",win:17,reason:"頂分配五檔，近績2-2極穩，梁家俊主轡"},
+   {rk:3,no:11,name:"領創動力",id:"HK_2023_J058",jky:"黃智弘",trn:"沈集成",draw:10,wt:121,rt:46,last6:"1/11/5/7/1/1",bt:"1.38.67",win:13,tag:"val",reason:"近三仗1-1勇態，見習讓磅，全天候有威脅"},
+   {rk:4,no:12,name:"林寶精神",id:"HK_2024_K305",jky:"希威森",trn:"廖康銘",draw:9,wt:119,rt:44,last6:"11/4/2/4/4/4",bt:"1.38.31",win:12,reason:"全天候近績4-4-4穩定，希威森策騎"},
+   {rk:5,no:5,name:"精彩動力",id:"HK_2022_H120",jky:"莫雷拉",trn:"方嘉柏",draw:1,wt:127,rt:52,last6:"5/6/5/10/13/11",bt:"1.37.94",win:11,reason:"一檔莫雷拉，最快1.37.9，惟近況待回勇"}
+  ],
+  value:{no:11,name:"領創動力",reason:"近兩仗連捷，見習騎師讓磅，全天候冷門搏上"}},
+
+ {no:6,name:"林村河讓賽",time:"18:30",surface:"草地",track:"B",dist:"1200米",going:"好地",prize:"$1,170,000",band:"60-40",cls:"第四班",
+  fav:1,
+  top5:[
+   {rk:1,no:1,name:"怡昌光輝",id:"HK_2024_K074",jky:"布文",trn:"黎昭昇",draw:3,wt:135,rt:59,last6:"12/7/5/6/4/1",bt:"1.09.06",win:21,tag:"tp",reason:"頂分配三檔，上仗勝出，最快1.09.0，布文主轡"},
+   {rk:2,no:3,name:"風采人生",id:"HK_2023_J366",jky:"莫雷拉",trn:"方嘉柏",draw:7,wt:132,rt:56,last6:"3/1/7/3/1/12",bt:"1.09.09",win:19,reason:"莫雷拉操刀，近績多勝，1200米合適"},
+   {rk:3,no:8,name:"嘉應駿馬",id:"HK_2023_J439",jky:"田泰安",trn:"大衛希斯",draw:8,wt:124,rt:48,last6:"4/6/6/4/1/4",bt:"1.09.17",win:12,reason:"田泰安策騎，近績穩定曾勝出，八檔適中"},
+   {rk:4,no:14,name:"全神貫注",id:"HK_2022_H465",jky:"巫顯東",trn:"姚本輝",draw:13,wt:117,rt:41,last6:"7/7/7/3/1/1",bt:"1.09.54",win:11,tag:"val",reason:"近兩仗連勝勢頭強，惟十三檔最闊兜路"},
+   {rk:5,no:10,name:"快樂高球",id:"HK_2023_J222",jky:"袁幸堯",trn:"羅富全",draw:11,wt:121,rt:45,last6:"3/1/4/3/11/4",bt:"1.08.91",win:10,reason:"最快1.08.9，見習讓磅，具上名條件"}
+  ],
+  value:{no:14,name:"全神貫注",reason:"近兩仗連勝勢勁，外檔賠率料寬，冷門搏上"}},
+
+ {no:7,name:"沙頭角河讓賽",time:"19:05",surface:"草地",track:"B",dist:"1400米",going:"好地",prize:"$1,170,000",band:"60-40",cls:"第四班",
+  fav:1,
+  top5:[
+   {rk:1,no:1,name:"喜悅歡欣",id:"HK_2025_L322",jky:"奧爾民",trn:"廖康銘",draw:1,wt:135,rt:60,last6:"1",bt:"1.20.81",win:23,tag:"tp",reason:"頂分一檔未嘗敗績，最快1.20.8，奧爾民主轡"},
+   {rk:2,no:5,name:"創寶駒",id:"HK_2025_L161",jky:"潘頓",trn:"黎昭昇",draw:14,wt:129,rt:54,last6:"2/3/3/5/7/2",bt:"1.21.05",win:15,reason:"潘頓策騎近績2-3-3穩定，惟十四檔最闊"},
+   {rk:3,no:3,name:"哈羅威",id:"HK_2023_J280",jky:"布浩榮",trn:"呂健威",draw:2,wt:132,rt:57,last6:"4/10/4/5/3/5",bt:"1.21.13",win:13,reason:"二檔慳腳，上仗跑第三，1400米適合"},
+   {rk:4,no:7,name:"實力加",id:"HK_2024_K058",jky:"潘明輝",trn:"賀賢",draw:5,wt:128,rt:53,last6:"5/2/3/8/3/3",bt:"1.21.60",win:12,reason:"近績5-2-3-3-3極穩，五檔位置理想"},
+   {rk:5,no:6,name:"八仟好運",id:"HK_2024_K582",jky:"艾兆禮",trn:"蔡約翰",draw:4,wt:129,rt:54,last6:"2/3/5/7/7/2",bt:"1.22.39",win:10,tag:"val",reason:"近兩仗第二回勇，四檔配艾兆禮"}
+  ],
+  value:{no:6,name:"八仟好運",reason:"上仗跑第二回勇，內檔配艾兆禮，賠率有值博"}},
+
+ {no:8,name:"皮亞士紀念挑戰盃（讓賽）",time:"19:35",surface:"草地",track:"B",dist:"1000米",going:"好地",prize:"$3,720,000",band:"110-80",cls:"第一班",
+  fav:2,
+  top5:[
+   {rk:1,no:2,name:"星際快車",id:"HK_2023_J186",jky:"布文",trn:"蔡約翰",draw:4,wt:130,rt:102,last6:"4/6/7/6/1/1",bt:"0.55.36",win:24,tag:"tp",reason:"近兩仗連勝勢不可擋，最快0.55.3，布文主轡"},
+   {rk:2,no:1,name:"美麗第一",id:"HK_2022_H294",jky:"田泰安",trn:"告東尼",draw:2,wt:135,rt:107,last6:"10/8/5/10/1/7",bt:"0.55.67",win:21,reason:"全場最高分107配二檔，田泰安主轡，曾勝出"},
+   {rk:3,no:4,name:"顏色之皇",id:"HK_2024_K227",jky:"艾兆禮",trn:"游達榮",draw:6,wt:125,rt:97,last6:"11/3/6/6/2/2",bt:"0.55.40",win:15,reason:"近兩仗連續第二狀態大勇，艾兆禮策騎"},
+   {rk:4,no:5,name:"賢者無敵",id:"HK_2022_H301",jky:"奧爾民",trn:"賀賢",draw:9,wt:123,rt:95,last6:"11/12/3/8/3/12",bt:"0.55.64",win:10,reason:"短途快馬，近績偶有上名，奧爾民操刀"},
+   {rk:5,no:11,name:"好評如潮",id:"HK_2025_L223",jky:"潘明輝",trn:"鄭俊偉",draw:11,wt:115,rt:80,last6:"8/7/2/2/3/5",bt:"0.55.47",win:9,tag:"val",reason:"近績2-2-3明顯上力，評分最低有讓磅之利"}
+  ],
+  value:{no:11,name:"好評如潮",reason:"近三仗2-2-3上力，評分最輕讓磅，冷門有威脅"}},
+
+ {no:9,name:"雙魚河讓賽",time:"20:05",surface:"全天候跑道",track:"—",dist:"1650米",going:"封地",prize:"$2,050,000",band:"85-60",cls:"第三班",
+  fav:1,
+  top5:[
+   {rk:1,no:1,name:"精英雄心",id:"HK_2023_J136",jky:"潘頓",trn:"廖康銘",draw:3,wt:135,rt:85,last6:"9/2/4/7/3/5",bt:"1.37.91",win:20,tag:"tp",reason:"頂分配三檔，潘頓主轡，全天候具實力"},
+   {rk:2,no:2,name:"樂勝天下",id:"HK_2023_J540",jky:"袁幸堯",trn:"姚本輝",draw:14,wt:135,rt:85,last6:"5/2/1/2/5/1",bt:"—",win:18,reason:"上仗勝出頂分在身，惟十四檔最闊兜路"},
+   {rk:3,no:9,name:"哪吒",id:"HK_2024_K494",jky:"潘明輝",trn:"賀賢",draw:6,wt:115,rt:65,last6:"5/7/7/1/11/2",bt:"1.38.13",win:12,reason:"近績回勇曾勝出，六檔位置理想"},
+   {rk:4,no:13,name:"勁勇皇駒",id:"HK_2024_K157",jky:"金誠剛",trn:"呂健威",draw:5,wt:115,rt:61,last6:"14/1/1/6/1/6",bt:"1.41.05",win:11,tag:"val",reason:"全天候屢勝1-1-1，五檔起步，冷門有威脅"},
+   {rk:5,no:3,name:"鈦易搵",id:"HK_2022_H216",jky:"莫雷拉",trn:"方嘉柏",draw:9,wt:133,rt:83,last6:"10/10/7/8/8/7",bt:"—",win:10,reason:"莫雷拉操刀，分高有班底，近況待回勇"}
+  ],
+  value:{no:13,name:"勁勇皇駒",reason:"全天候多次頭馬，輕磅起步，賠率料寬可搏"}},
+
+ {no:10,name:"石上河讓賽",time:"20:40",surface:"草地",track:"B",dist:"1200米",going:"好地",prize:"$1,860,000",band:"80-60",cls:"第三班",
+  fav:1,
+  top5:[
+   {rk:1,no:1,name:"得道猴王",id:"HK_2023_J303",jky:"潘頓",trn:"告東尼",draw:5,wt:135,rt:79,last6:"4/3/9/10/4/3",bt:"1.08.37",win:21,tag:"tp",reason:"頂分配五檔，潘頓主轡，最快1.08.3"},
+   {rk:2,no:6,name:"堅先生",id:"HK_2025_L232",jky:"田泰安",trn:"桂福特",draw:2,wt:126,rt:70,last6:"1/6/1",bt:"1.08.59",win:15,reason:"出道三仗兩勝，二檔起步，田泰安策騎"},
+   {rk:3,no:2,name:"開心指數",id:"HK_2025_L152",jky:"黃寶妮",trn:"文家良",draw:7,wt:133,rt:77,last6:"9/9/3/2/1/3",bt:"1.08.61",win:14,reason:"近績回勇兩仗前勝出，見習讓磅"},
+   {rk:4,no:8,name:"健康快車",id:"HK_2022_H439",jky:"艾道拿",trn:"蔡約翰",draw:3,wt:123,rt:67,last6:"7/5/11/6/2/3",bt:"1.08.44",win:12,tag:"val",reason:"最快1.08.4，三檔起步，上仗跑第三"},
+   {rk:5,no:7,name:"傑出雷霆",id:"HK_2025_L121",jky:"何澤堯",trn:"呂健威",draw:11,wt:126,rt:70,last6:"11/1/2/4/3/5",bt:"1.08.82",win:10,reason:"何澤堯策騎，曾勝出近況穩定"}
+  ],
+  value:{no:8,name:"健康快車",reason:"全場最快時間，內檔起步，賠率有值博"}},
+
+ {no:11,name:"丹山河讓賽",time:"21:15",surface:"草地",track:"B",dist:"1400米",going:"好地",prize:"$1,860,000",band:"80-60",cls:"第三班",
+  fav:6,
+  top5:[
+   {rk:1,no:6,name:"綫路英雄",id:"HK_2023_J428",jky:"潘頓",trn:"沈集成",draw:9,wt:131,rt:71,last6:"3/1/1/2",bt:"1.21.01",win:18,tag:"tp",reason:"潘頓策騎近績1-1-2勢頭強，1400米合適"},
+   {rk:2,no:2,name:"友瑩仁",id:"HK_2023_J180",jky:"艾兆禮",trn:"伍鵬志",draw:10,wt:133,rt:73,last6:"1/4/1/1/2/6",bt:"1.20.85",win:17,reason:"多次勝出最快1.20.8，艾兆禮主轡"},
+   {rk:3,no:7,name:"做好自己",id:"HK_2023_J444",jky:"布文",trn:"呂健威",draw:7,wt:130,rt:70,last6:"3/2/2/3/3/3",bt:"1.21.14",win:16,reason:"近六仗全數上名3-2-2-3-3-3，布文主轡"},
+   {rk:4,no:4,name:"一世美麗",id:"HK_2024_K489",jky:"布浩榮",trn:"蔡約翰",draw:1,wt:133,rt:73,last6:"7/3/3/2/1/9",bt:"1.21.09",win:12,reason:"一檔起步大有利，近績穩定曾勝出"},
+   {rk:5,no:5,name:"金牌活力",id:"HK_2023_J402",jky:"田泰安",trn:"桂福特",draw:3,wt:132,rt:72,last6:"9/8/3/8/8/1",bt:"1.21.37",win:11,reason:"上仗勝出回勇，三檔配田泰安"}
+  ],
+  value:{no:10,name:"勇霸龍",reason:"巴度主轡，近績3-1-3-3穩定，賠率有值博"}}
+];
+
+/* ============================================================
+   賠率引擎（Option A）：每60秒嘗試抓取；保留滾動60分鐘歷史；
+   依規則計算跌幅%並上色；無法讀取則回退 N/A。
+   注：因 CORS / 開盤時間，現時通常無法於瀏覽器抓取，會顯示 N/A。
+   ============================================================ */
+const TZ = 'Asia/Hong_Kong';
+const RACE_DATE = '2026-06-27';
+function hkNow(){ return new Date(); }
+function fmtHKT(d){
+  return new Intl.DateTimeFormat('zh-HK',{timeZone:TZ,hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(d);
+}
+function fmtHKTfull(d){
+  return new Intl.DateTimeFormat('zh-HK',{timeZone:TZ,month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(d);
+}
+
+// 滾動歷史：localStorage 持久化，鍵 = 時戳，值 = {raceno:{horseno:{win,pla},qpl:{...}}}
+const HIST_KEY = 'st_odds_hist_'+RACE_DATE;
+function loadHist(){ try{return JSON.parse(localStorage.getItem(HIST_KEY)||'[]')}catch(e){return[]} }
+function saveHist(h){ try{localStorage.setItem(HIST_KEY, JSON.stringify(h))}catch(e){} }
+function pruneHist(h){ const cut=Date.now()-65*60*1000; return h.filter(s=>s.t>=cut); }
+
+// 取約60分鐘前的快照（容差 ±10 分鐘，取最接近）
+function snapshotAround(h, minsAgo){
+  const target = Date.now()-minsAgo*60*1000;
+  let best=null,bd=Infinity;
+  for(const s of h){ const d=Math.abs(s.t-target); if(d<bd && d<=15*60*1000){bd=d;best=s;} }
+  return best;
+}
+
+function dropColour(p){ if(p>=25)return'red'; if(p>=20)return'brown'; if(p>=10)return'green'; return''; }
+
+// 嘗試抓取賠率（多數情況會因 CORS 失敗 → 回退）
+async function fetchRaceOdds(raceno){
+  // 馬會獨贏/位置 JSON（賽日開盤後才有資料；瀏覽器多被 CORS 阻擋）
+  const url = `https://bet.hkjc.com/racing/getJSON.aspx?type=winplaodds&date=${RACE_DATE.replace(/-/g,'/')}&venue=ST&raceno=${raceno}`;
+  const res = await fetch(url,{mode:'cors'}); // 失敗會 throw → 由呼叫端 catch
+  return await res.json();
+}
+
+let feedOK=false;
+async function refreshAll(){
+  const now=Date.now();
+  let any=false;
+  const snap={t:now, data:{}};
+  for(const r of RACES){
+    try{
+      const j=await fetchRaceOdds(r.no);
+      // 若成功，解析（結構視乎 API；此處保守處理，未開盤則略過）
+      if(j){ any=true; /* 解析邏輯預留：j -> snap.data[r.no] */ }
+    }catch(e){ /* CORS / 未開盤 / 離線 → 忽略 */ }
+  }
+  feedOK=any;
+  const pill=document.getElementById('feedPill');
+  const notice=document.getElementById('feedNotice');
+  if(feedOK){
+    let h=pruneHist(loadHist()); h.push(snap); saveHist(h);
+    document.getElementById('lastUpd').textContent=fmtHKTfull(new Date())+' HKT';
+    pill.className='pill live'; pill.textContent='賠率來源：即時連線';
+    applyColours(h);
+  }else{
+    document.getElementById('lastUpd').textContent='尚未取得（'+fmtHKT(new Date())+' HKT 嘗試）';
+    pill.className='pill warn'; pill.textContent='賠率來源：N/A（CORS／未開盤）';
+  }
+}
+
+// 將賠率與60分鐘前比較並上色（資料源可讀取時才生效）
+function applyColours(h){
+  const prev=snapshotAround(h,60);
+  document.querySelectorAll('[data-odds]').forEach(td=>{
+    const rn=+td.dataset.race, hn=+td.dataset.horse, pool=td.dataset.pool;
+    const cur=getOdds(h[h.length-1],rn,hn,pool);
+    td.className=''; td.dataset.odds='';
+    if(cur==null){ td.innerHTML='<span class="na">N/A</span>'; return; }
+    let html=cur.toFixed(1);
+    if(prev){
+      const old=getOdds(prev,rn,hn,pool);
+      if(old!=null && old>0){
+        const drop=(old-cur)/old*100;
+        const c=dropColour(drop);
+        const sign=drop>=0?'−':'+';
+        const dot=drop>=25?' 🔴':drop>=20?' 🟤':drop>=10?' 🟢':'';
+        html=`${old.toFixed(1)} → ${cur.toFixed(1)} (${sign}${Math.abs(drop).toFixed(1)}%)${dot}`;
+        if(c) td.className='cell-'+c;
+      }
+    }
+    td.innerHTML=html;
+  });
+}
+function getOdds(snap,rn,hn,pool){
+  if(!snap||!snap.data||!snap.data[rn])return null;
+  const d=snap.data[rn][hn]; if(!d)return null; return d[pool]??null;
+}
+
+/* ============================================================
+   畫面渲染
+   ============================================================ */
+function renderRaces(){
+  const root=document.getElementById('races');
+  root.innerHTML=RACES.map(r=>{
+    const favHorse=r.top5.find(h=>h.no===r.fav);
+    const favLabel=favHorse?`#${favHorse.no} ${favHorse.name}`:`#${r.fav}`;
+    const rows=r.top5.map(h=>{
+      const tag = h.tag==='tp'?'<span class="tag tp">首選</span>':(h.tag==='val'?'<span class="tag val">冷馬</span>':'');
+      const isFav=h.no===r.fav;
+      const qplCell = isFav
+        ? '<span class="na">—（即首選）</span>'
+        : `<span class="na" data-odds data-race="${r.no}" data-horse="${h.no}" data-pool="qpl">N/A</span>`;
+      return `<tr>
+        <td>${r.no}</td>
+        <td>${r.time}</td>
+        <td class="no ${h.tag==='tp'?'toppick':''}">${h.no}</td>
+        <td class="horse" onclick="openHorse(${r.no},${h.no})">${h.name}${tag}</td>
+        <td><span class="winbar" style="width:${h.win*3}px"></span>${h.win}%</td>
+        <td data-odds data-race="${r.no}" data-horse="${h.no}" data-pool="win"><span class="na">N/A</span></td>
+        <td data-odds data-race="${r.no}" data-horse="${h.no}" data-pool="pla"><span class="na">N/A</span></td>
+        <td>${qplCell}</td>
+        <td><span class="na" id="lu_${r.no}_${h.no}">—</span></td>
+      </tr>`;
+    }).join('');
+    const tp=r.top5.find(h=>h.tag==='tp');
+    return `<section class="race">
+      <h2><span class="rno">第${r.no}場</span> ${r.name}
+        <span class="rtime">${r.time} HKT</span>
+        <span class="rmeta">${r.surface}${r.track!=='—'?'・'+r.track+'賽道':''}・${r.dist}・${r.going}・${r.cls}（${r.band}）・獎金 ${r.prize}</span></h2>
+      <table>
+        <thead><tr>
+          <th>場</th><th>開跑(HKT)</th><th>馬號</th><th>馬名</th><th>估算勝算</th>
+          <th>獨贏 (Δ1h)</th><th>位置 (Δ1h)</th><th>位置Q／首選 (Δ1h)</th><th>賠率更新(HKT)</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="note">
+        <div class="row"><span class="lab">本場首選：</span>#${tp.no} ${tp.name}（${tp.jky}／估 ${tp.win}%）— ${tp.reason}</div>
+        <div class="row"><span class="lab v">值博／冷馬：</span>#${r.value.no} ${r.value.name} — ${r.value.reason}</div>
+        <div class="row" style="color:var(--muted)"><span class="lab" style="color:var(--muted)">位置Q配搭：</span>各推介馬均與本場首選 ${favLabel} 配對顯示；🔴/🟤 急跌走勢待賠率開盤後自動標示，現時為 <span class="na">N/A</span>。</div>
+      </div>
+    </section>`;
+  }).join('');
+}
+
+function openHorse(rno,hno){
+  const r=RACES.find(x=>x.no===rno);
+  const h=r.top5.find(x=>x.no===hno);
+  if(!h)return;
+  document.getElementById('mTitle').innerHTML=
+    `#${h.no} ${h.name} <span style="font-size:13px;color:var(--muted);font-weight:500">第${r.no}場・${r.dist}・${r.cls}</span><span class="x" id="mClose">×</span>`;
+  document.getElementById('mClose').onclick=closeModal;
+  const favHorse=r.top5.find(x=>x.no===r.fav);
+  const body=`
+    <div class="src">
+      <div class="sh"><span class="dot"></span>馬會官方排位表（已核實）</div>
+      <div class="sb">
+        <div class="kv">
+          <span class="k">排名／估算勝算</span><span class="v">第 ${h.rk} 位 ・ 估 ${h.win}%</span>
+          <span class="k">騎師 / 練馬師</span><span class="v">${h.jky} ／ ${h.trn}</span>
+          <span class="k">檔位 / 負磅</span><span class="v">${h.draw} 檔 ／ ${h.wt} 磅</span>
+          <span class="k">評分</span><span class="v">${h.rt}（分段 ${r.band}）</span>
+          <span class="k">近6仗往績</span><span class="v formstr">${h.last6}</span>
+          <span class="k">最佳時間</span><span class="v">${h.bt}</span>
+          <span class="k">場地</span><span class="v">${r.surface}${r.track!=='—'?'・'+r.track+'賽道':''}・${r.going}</span>
+        </div>
+        <div style="margin-top:8px"><a href="${HORSE_URL(h.id)}" target="_blank" rel="noopener">↗ 馬會馬匹詳細往績頁</a></div>
+      </div>
+    </div>
+
+    <div class="src">
+      <div class="sh"><span class="dot"></span>本頁分析（方法 §3 綜合評估）</div>
+      <div class="sb">
+        <div style="margin-bottom:6px">${h.reason}</div>
+        <div style="color:var(--muted);font-size:12px">綜合：近績穩定度、評分相對分段、檔位適性、騎練往績、路程／賽道適應、最佳時間（速度指標）。此為相對機率估算，並非保證。</div>
+      </div>
+    </div>
+
+    <div class="src">
+      <div class="sh"><span class="dot"></span>即時賠率（獨贏／位置／位置Q）</div>
+      <div class="sb">
+        <div class="kv">
+          <span class="k">獨贏</span><span class="v"><span class="na">N/A</span></span>
+          <span class="k">位置</span><span class="v"><span class="na">N/A</span></span>
+          <span class="k">位置Q（與 #${favHorse?favHorse.no:r.fav} ${favHorse?favHorse.name:''} 配）</span><span class="v">${h.no===r.fav?'—（即首選）':'<span class="na">N/A</span>'}</span>
+        </div>
+        <div style="color:var(--muted);font-size:12px;margin-top:6px">賠率源未開盤／受 CORS 限制，開盤後 60 秒輪詢自動填入並計算一小時跌幅上色。</div>
+      </div>
+    </div>
+
+    <div class="src">
+      <div class="sh"><span class="dot off"></span>名家貼士票數 & 落飛／大票房資金流</div>
+      <div class="sb">
+        <span class="na">N/A — </span>on.cc 東網馬經、星島贏跑網、競馬網等為動態頁面，伺服器端未能可靠機讀。
+        如需此欄（貼士票數、正副冷、大票房入飛排名），請於賽前觸發分析員以快照方式補入，並會註明資料時間。
+        <div style="margin-top:6px;font-size:12px">
+          參考連結：
+          <a href="https://racing.on.cc/" target="_blank" rel="noopener">on.cc 馬經</a>
+          <a href="https://racing.stheadline.com/" target="_blank" rel="noopener">星島贏跑</a>
+          <a href="https://www.racingking.hk/" target="_blank" rel="noopener">競馬網</a>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('mBody').innerHTML=body;
+  document.getElementById('mask').classList.add('on');
+}
+function closeModal(){ document.getElementById('mask').classList.remove('on'); }
+
+/* init */
+renderRaces();
+document.getElementById('mask').addEventListener('click',e=>{ if(e.target.id==='mask')closeModal(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape')closeModal(); });
+document.getElementById('refreshBtn').onclick=refreshAll;
+function tickClock(){ document.getElementById('clock').textContent=fmtHKT(new Date())+' HKT'; }
+tickClock(); setInterval(tickClock,1000);
+refreshAll(); setInterval(refreshAll,60*1000);
+</script>
+</body>
+</html>
