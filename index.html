@@ -83,6 +83,14 @@
   .note .lab.v{color:var(--accent2)}
   .note .row{margin:3px 0}
 
+  .resultbox{padding:11px 16px;border-top:1px solid var(--line);font-size:13.5px}
+  .resultbox.pending{color:var(--muted);background:rgba(255,255,255,.015)}
+  .resultbox.done{background:linear-gradient(180deg,rgba(232,185,35,.07),rgba(232,185,35,.02))}
+  .resultbox .rhead{font-weight:800;color:var(--gold);margin-bottom:5px}
+  .resultbox .rline{margin:3px 0;line-height:1.7}
+  .resultbox .rk2{color:var(--muted);font-size:12px;margin-right:2px}
+  .resultbox .hit{color:var(--accent2);font-size:12.5px;margin-top:4px}
+
   /* modal */
   .mask{position:fixed;inset:0;background:rgba(4,9,18,.74);display:none;
     align-items:center;justify-content:center;z-index:50;padding:18px}
@@ -132,25 +140,30 @@
   <div class="statusbar">
     <div class="big">賠率最後更新：<b id="lastUpd">尚未取得</b></div>
     <span class="pill warn" id="feedPill">賠率來源：N/A</span>
-    <button class="btn" id="refreshBtn">立即重新整理</button>
-    <span style="color:var(--muted);font-size:12.5px">每 60 秒自動嘗試更新（Option A）</span>
+    <button class="btn" id="refreshBtn">立即嘗試自動更新</button>
+    <button class="btn" id="proxyBtn" style="background:#5a3a7e;color:#e6d2ff">設定代理網址</button>
+    <button class="btn" id="snapBtn" style="background:#2c4a6e;color:#cfe3ff">輸入賠率快照</button>
+    <button class="btn" id="resultBtn" style="background:#2c6e4a;color:#d2ffe3">更新賽果</button>
+    <span style="color:var(--muted);font-size:12.5px">每 60 秒自動嘗試（Option A）・上色比較窗 = 60 秒</span>
   </div>
 
   <div class="notice" id="feedNotice">
-    <b>賠率狀態說明：</b>獨贏（獨贏）／位置（位置）／位置Q（QPL）即時賠率來自馬會投注網（bet.hkjc.com），
-    需經瀏覽器即時抓取。由於跨網域（CORS）限制，以及賽前一晚／賽日早上才開盤，
-    現時所有賠率欄暫顯示 <span class="na">N/A</span>。本頁已內建 60 秒輪詢引擎與滾動 60 分鐘歷史，
-    一旦資料源可讀取即會自動填入並依規則上色；若持續封鎖，請改用排程快照（Option B）方式由分析員定時拉取。
-    <br><b>誠實聲明：</b>本頁不會虛構任何賠率或貼士；所有排位、往績、評分、檔位、騎練資料均取自馬會官方排位表（已核實）。
+    <b>賠率自動更新的技術限制（重要・誠實說明）：</b>馬會已取消公開的賠率 JSON 介面，現時即時賠率只能透過
+    bet.hkjc.com 的 JavaScript 程式／GraphQL 載入；靜態網頁（GitHub Pages）受跨網域（CORS）限制，
+    <b>無法可靠地自動拉取馬會即時獨贏／位置／位置Q 賠率</b>。因此「自動拉賠率」在純靜態頁面並不能保證成功，這非設定問題，而是來源端的限制。
+    <br>本頁提供三條可行路徑：(1) <b>真・全自動（建議）</b>：自建免費 Cloudflare Worker 代理（檔案 hkjc-odds-worker.js 已附），按 <b>「設定代理網址」</b>貼上 Worker 網址，便會經馬會官方 GraphQL 每60秒自動更新獨贏／位置／位置Q 並依60秒窗上色；
+    (2) <b>「輸入賠率快照」</b>可貼上你在馬會 App 看到的真實賠率（CSV），系統打時戳儲存、以 <b>60 秒</b>窗比較上色（無需代理）；
+    (3) 由分析員以排程快照（Option B）定時補入。
+    <br><b>誠實聲明：</b>本頁不會虛構任何賠率或賽果；所有排位、往績、評分、檔位、騎練、賽果與派彩均取自馬會官方資料（已核實）。
   </div>
 
   <div class="legend">
-    <b style="color:var(--txt)">一小時內急跌上色規則：</b>
+    <b style="color:var(--txt)">60 秒內急跌上色規則：</b>
     <span class="sw"><span class="box r"></span> 跌幅 ≥ 25% 紅</span>
     <span class="sw"><span class="box b"></span> 20–25% 啡</span>
     <span class="sw"><span class="box g"></span> 10–20% 綠</span>
     <span class="sw">＜10% 不上色</span>
-    <span style="margin-left:auto">跌幅% =（一小時前賠率 − 現時賠率）÷ 一小時前賠率 × 100</span>
+    <span style="margin-left:auto">跌幅% =（60 秒前賠率 − 現時賠率）÷ 60 秒前賠率 × 100</span>
   </div>
 
   <div id="races"></div>
@@ -166,8 +179,10 @@
     <div><b>資料來源與方法</b></div>
     <div>排位／往績／評分／檔位／騎練／最佳時間：香港賽馬會官方排位表 racing.hkjc.com（2026/06/27 沙田，已核實，共 11 場）。</div>
     <div>排名方法（§3）：綜合近 6 仗往績與上名穩定度、評分相對讓賽分段、檔位與路程／賽道適性、騎練往績、草地／全天候適應、最佳時間（速度指標）、以及市場與貼士走向。勝算為相對估算，未必相加等於 100%。</div>
-    <div>未能機讀的資料（標示 N/A）：即時獨贏／位置／位置Q 賠率（CORS 限制／未開盤）；名家貼士票數與落飛／大票房資金流（on.cc、星島贏跑、競馬網等為動態頁面，伺服器端未能可靠解析）。如需這些欄位，請於賽前觸發分析員以快照方式補入。</div>
-    <div style="margin-top:6px">本頁為單一 HTML 檔，可離線開啟；賠率輪詢需連線且資料源可讀取時方會生效。</div>
+    <div>賽果與派彩：香港賽馬會官方賽果頁 racing.hkjc.com（已核實；其餘場次完成後可按「更新賽果」經代理嘗試自動補入，解析不到則維持「未有賽果」）。</div>
+    <div>賠率上色：§5 規則以 <b>60 秒</b>滾動窗計算跌幅%（紅 ≥25%、啡 20–25%、綠 10–20%、＜10% 不上色）。馬會已取消公開賠率 JSON，靜態頁自動拉取未必成功；「輸入賠率快照」貼上真實賠率為最可靠來源。</div>
+    <div>仍標示 N/A 的資料：未有真實賠率快照前的獨贏／位置／位置Q；名家貼士票數與落飛／大票房資金流（動態頁面，伺服器端未能可靠解析）。</div>
+    <div style="margin-top:6px">本頁為單一 HTML 檔，可離線開啟；自動更新需連線且資料源可讀取時方會生效。</div>
   </footer>
 </div>
 
@@ -310,77 +325,136 @@ const RACES = [
 ];
 
 /* ============================================================
-   賠率引擎（Option A）：每60秒嘗試抓取；保留滾動60分鐘歷史；
-   依規則計算跌幅%並上色；無法讀取則回退 N/A。
-   注：因 CORS / 開盤時間，現時通常無法於瀏覽器抓取，會顯示 N/A。
+   賽果（取自馬會官方賽果頁，已核實；未開跑／未有賽果者從缺）
+   結構：{ raceno: {time, placings:[{pos,no,name,jky}], win, pla:[{no,div}], qpl:[{pair,div}] } }
+   說明：賽果為事實資料，不適用 §5（§5 為賠率急跌上色，只作用於賠率欄）。
+   ============================================================ */
+const RESULTS = {
+  1:{ time:"1:09.04", src:"https://racing.hkjc.com/zh-hk/local/information/localresults?racedate=2026/06/27&Racecourse=ST&RaceNo=1",
+      placings:[{pos:1,no:10,name:"綫路光驊",jky:"黃寶妮"},{pos:2,no:4,name:"翠湖烈風",jky:"潘頓"},{pos:3,no:3,name:"果然僥倖",jky:"奧爾民"},{pos:4,no:12,name:"萬事得意",jky:"鍾易禮"}],
+      win:{no:10,div:"153.50"},
+      pla:[{no:10,div:"45.50"},{no:4,div:"33.50"},{no:3,div:"18.50"}],
+      qpl:[{pair:"4,10",div:"230.50"},{pair:"3,10",div:"151.00"},{pair:"3,4",div:"103.00"}] }
+};
+
+/* ============================================================
+   賠率引擎（Option A）：每60秒嘗試自動更新；保留滾動歷史；
+   以「60 秒」窗計算跌幅%並依 §5 上色；無法讀取則回退 N/A。
+   重要：馬會已無公開賠率 JSON，靜態頁面受 CORS 限制，自動拉取未必成功；
+   「輸入賠率快照」為最可靠路徑（貼上真實賠率，系統打時戳並以60秒窗比較上色）。
    ============================================================ */
 const TZ = 'Asia/Hong_Kong';
 const RACE_DATE = '2026-06-27';
-function hkNow(){ return new Date(); }
-function fmtHKT(d){
-  return new Intl.DateTimeFormat('zh-HK',{timeZone:TZ,hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(d);
+const WINDOW_MIN = 1;                 // §5 比較窗：60 秒（1 分鐘）
+const PRUNE_MIN  = 4;                 // 歷史保留約 4 分鐘即足夠
+const TOL_MS     = 30*1000;           // 取「60 秒前」快照之容差 ±30 秒
+// 代理設定：若已填自建 Cloudflare Worker 網址，賠率與賽果均經 Worker（穩定）；
+// 否則賽果用公共代理盡力嘗試，賠率自動更新則無法成功（請用「輸入賠率快照」）。
+const DEFAULT_WORKER='https://hkjc-odds.claudeasiabc.workers.dev';   // 已內建代理，分享即用
+function workerBase(){ return (localStorage.getItem('st_worker')||DEFAULT_WORKER).replace(/\/+$/,''); }
+function PROXY(u){
+  const b=workerBase();
+  return b ? b+'/raw?url='+encodeURIComponent(u)
+           : 'https://api.allorigins.win/raw?url='+encodeURIComponent(u);
 }
-function fmtHKTfull(d){
-  return new Intl.DateTimeFormat('zh-HK',{timeZone:TZ,month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(d);
+function openProxyInput(){
+  const cur=localStorage.getItem('st_worker')||'';
+  const v=prompt(
+    "貼上你的 Cloudflare Worker 網址（例：https://hkjc-odds.你的名.workers.dev）。\\n"+
+    "設定後會經此代理抓取『馬會官方即時賠率』，獨贏／位置／位置Q 便會每60秒自動更新並依60秒窗上色。\\n"+
+    "留空＝清除設定。", cur);
+  if(v===null) return;
+  const url=v.trim().replace(/\/+$/,'');
+  if(url) localStorage.setItem('st_worker',url); else localStorage.removeItem('st_worker');
+  updateProxyPill();
+  alert(url?('已設定代理：\n'+url+'\n\n按「立即嘗試自動更新」測試。'):'已清除代理設定。');
+  refreshAll();
+}
+function updateProxyPill(){
+  const b=workerBase(); const el=document.getElementById('proxyBtn');
+  if(el) el.textContent = b ? '代理：已設定 ✓' : '設定代理網址';
 }
 
-// 滾動歷史：localStorage 持久化，鍵 = 時戳，值 = {raceno:{horseno:{win,pla},qpl:{...}}}
+function fmtHKT(d){ return new Intl.DateTimeFormat('zh-HK',{timeZone:TZ,hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(d); }
+function fmtHKTfull(d){ return new Intl.DateTimeFormat('zh-HK',{timeZone:TZ,month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(d); }
+
+// 滾動歷史（localStorage 持久化）：[{t, data:{race:{horse:{win,pla,qpl}}}}]
 const HIST_KEY = 'st_odds_hist_'+RACE_DATE;
 function loadHist(){ try{return JSON.parse(localStorage.getItem(HIST_KEY)||'[]')}catch(e){return[]} }
 function saveHist(h){ try{localStorage.setItem(HIST_KEY, JSON.stringify(h))}catch(e){} }
-function pruneHist(h){ const cut=Date.now()-65*60*1000; return h.filter(s=>s.t>=cut); }
+function pruneHist(h){ const cut=Date.now()-PRUNE_MIN*60*1000; return h.filter(s=>s.t>=cut); }
 
-// 取約60分鐘前的快照（容差 ±10 分鐘，取最接近）
+// 取約「minsAgo 分鐘前」最接近之快照（容差 TOL_MS）
 function snapshotAround(h, minsAgo){
   const target = Date.now()-minsAgo*60*1000;
   let best=null,bd=Infinity;
-  for(const s of h){ const d=Math.abs(s.t-target); if(d<bd && d<=15*60*1000){bd=d;best=s;} }
+  for(const s of h){ const d=Math.abs(s.t-target); if(d<bd && d<=TOL_MS){bd=d;best=s;} }
   return best;
 }
-
 function dropColour(p){ if(p>=25)return'red'; if(p>=20)return'brown'; if(p>=10)return'green'; return''; }
 
-// 嘗試抓取賠率（多數情況會因 CORS 失敗 → 回退）
+// 自動抓取：經自建 Cloudflare Worker 取「馬會官方即時賠率」（WIN/PLA/QPL）。
+// 未設定 Worker → throw → 由上層回退（請用「輸入賠率快照」）。
 async function fetchRaceOdds(raceno){
-  // 馬會獨贏/位置 JSON（賽日開盤後才有資料；瀏覽器多被 CORS 阻擋）
-  const url = `https://bet.hkjc.com/racing/getJSON.aspx?type=winplaodds&date=${RACE_DATE.replace(/-/g,'/')}&venue=ST&raceno=${raceno}`;
-  const res = await fetch(url,{mode:'cors'}); // 失敗會 throw → 由呼叫端 catch
-  return await res.json();
+  const base=workerBase();
+  if(!base) throw new Error('proxy not set');
+  const res=await fetch(`${base}/odds?date=${RACE_DATE}&venue=ST&race=${raceno}`,{cache:'no-store'});
+  const j=await res.json();
+  if(!j || j.error || !j.win || !Object.keys(j.win).length) throw new Error(j&&j.error||'empty');
+  const out={};
+  for(const no in j.win){ const w=parseFloat(j.win[no]); if(!isNaN(w)) out[+no]={win:w, pla:(j.pla&&j.pla[no]!=null)?parseFloat(j.pla[no]):null, qpl:null}; }
+  if(!Object.keys(out).length) throw new Error('empty');
+  // 實時大熱 = 獨贏最低者；各馬位置Q與大熱配對
+  let fav=null,fo=Infinity; for(const no in out){ if(out[no].win<fo){fo=out[no].win;fav=+no;} }
+  if(fav && j.qpl){
+    for(const no in out){ if(+no===fav) continue;
+      const k=[+no,fav].sort((a,b)=>a-b).join(',');
+      if(j.qpl[k]!=null) out[+no].qpl=parseFloat(j.qpl[k]);
+    }
+  }
+  return out;
 }
 
 let feedOK=false;
 async function refreshAll(){
-  const now=Date.now();
-  let any=false;
-  const snap={t:now, data:{}};
+  let any=false; const snap={t:Date.now(), src:'auto', data:{}};
   for(const r of RACES){
-    try{
-      const j=await fetchRaceOdds(r.no);
-      // 若成功，解析（結構視乎 API；此處保守處理，未開盤則略過）
-      if(j){ any=true; /* 解析邏輯預留：j -> snap.data[r.no] */ }
-    }catch(e){ /* CORS / 未開盤 / 離線 → 忽略 */ }
+    try{ const o=await fetchRaceOdds(r.no); if(o&&Object.keys(o).length){ snap.data[r.no]=o; any=true; } }
+    catch(e){ /* 代理／來源不可用 → 略過 */ }
   }
-  feedOK=any;
   const pill=document.getElementById('feedPill');
-  const notice=document.getElementById('feedNotice');
-  if(feedOK){
-    let h=pruneHist(loadHist()); h.push(snap); saveHist(h);
-    document.getElementById('lastUpd').textContent=fmtHKTfull(new Date())+' HKT';
-    pill.className='pill live'; pill.textContent='賠率來源：即時連線';
-    applyColours(h);
+  if(any){
+    feedOK=true; addSnapshot(snap);
+    pill.className='pill live'; pill.textContent='賠率來源：自動連線（經代理）';
   }else{
-    document.getElementById('lastUpd').textContent='尚未取得（'+fmtHKT(new Date())+' HKT 嘗試）';
-    pill.className='pill warn'; pill.textContent='賠率來源：N/A（CORS／未開盤）';
+    pill.className='pill warn';
+    pill.textContent = workerBase()
+      ? '賠率來源：代理已設定但未取得（未開盤／Worker需檢查）'
+      : '賠率來源：未設代理 — 按「設定代理網址」或用「輸入賠率快照」';
+    const h=pruneHist(loadHist());
+    document.getElementById('lastUpd').textContent =
+      h.length ? fmtHKTfull(new Date(h[h.length-1].t))+' HKT（手動快照）'
+               : '尚未取得（'+fmtHKT(new Date())+' HKT 自動嘗試失敗）';
+    applyColours(h);
   }
 }
 
-// 將賠率與60分鐘前比較並上色（資料源可讀取時才生效）
+// 加入一筆快照（自動或手動共用），即時上色
+function addSnapshot(snap){
+  let h=pruneHist(loadHist()); h.push(snap); saveHist(h);
+  document.getElementById('lastUpd').textContent =
+    fmtHKTfull(new Date(snap.t))+' HKT'+(snap.src==='manual'?'（手動快照）':'（自動）');
+  applyColours(h);
+}
+
+// 以最新快照 vs 60秒前快照，依 §5 上色
 function applyColours(h){
-  const prev=snapshotAround(h,60);
+  const latest = h.length? h[h.length-1] : null;
+  const prev   = snapshotAround(h, WINDOW_MIN);
   document.querySelectorAll('[data-odds]').forEach(td=>{
     const rn=+td.dataset.race, hn=+td.dataset.horse, pool=td.dataset.pool;
-    const cur=getOdds(h[h.length-1],rn,hn,pool);
-    td.className=''; td.dataset.odds='';
+    const cur=getOdds(latest,rn,hn,pool);
+    td.className='';
     if(cur==null){ td.innerHTML='<span class="na">N/A</span>'; return; }
     let html=cur.toFixed(1);
     if(prev){
@@ -399,12 +473,48 @@ function applyColours(h){
 }
 function getOdds(snap,rn,hn,pool){
   if(!snap||!snap.data||!snap.data[rn])return null;
-  const d=snap.data[rn][hn]; if(!d)return null; return d[pool]??null;
+  const d=snap.data[rn][hn]; if(!d)return null; const v=d[pool]; return (v==null||isNaN(v))?null:v;
+}
+
+/* 手動賠率快照：貼上 CSV「場,馬號,獨贏,位置[,位置Q]」，打時戳儲存並以60秒窗上色 */
+function openSnapInput(){
+  const eg = "場,馬號,獨贏,位置,位置Q\\n1,4,3.0,1.5,\\n1,3,5.5,1.8,2.4\\n8,2,2.3,1.3,";
+  const cur = prompt(
+    "貼上賠率快照（CSV，每行：場,馬號,獨贏,位置,位置Q）\\n"+
+    "・位置Q 可留空；可一次多場多馬。\\n"+
+    "・系統會以現在時間打時戳；隔約60秒再貼一次新賠率，即會比較並依規則上色。\\n\\n"+
+    "範例：\\n"+eg, "");
+  if(!cur) return;
+  const snap={t:Date.now(), src:'manual', data:{}};
+  let n=0;
+  cur.split(/\n/).forEach(line=>{
+    const c=line.split(',').map(x=>x.trim());
+    if(c.length<3) return;
+    const race=+c[0], horse=+c[1], win=parseFloat(c[2]), pla=parseFloat(c[3]), qpl=c[4]!==''&&c[4]!=null?parseFloat(c[4]):null;
+    if(!race||!horse||isNaN(win)) return;
+    snap.data[race]=snap.data[race]||{};
+    snap.data[race][horse]={win, pla:isNaN(pla)?null:pla, qpl:(qpl==null||isNaN(qpl))?null:qpl};
+    n++;
+  });
+  if(!n){ alert('未能解析任何資料，請檢查格式。'); return; }
+  addSnapshot(snap);
+  alert('已加入 '+n+' 筆賠率快照（'+fmtHKT(new Date(snap.t))+' HKT）。隔約60秒再貼新賠率即會上色比較。');
 }
 
 /* ============================================================
    畫面渲染
    ============================================================ */
+function placeOf(rno,hno){           // 該馬在賽果的名次（1-4），無則 null
+  const R=RESULTS[rno]; if(!R)return null;
+  const p=R.placings.find(x=>x.no===hno); return p?p.pos:null;
+}
+function placeBadge(pos){
+  if(!pos)return'';
+  const m={1:['冠','#e8b923'],2:['亞','#cfd6e0'],3:['季','#cd9b5b'],4:['殿','#7b8aa0']}[pos];
+  if(!m)return'';
+  return ` <span class="tag" style="background:rgba(232,185,35,.14);color:${m[1]};border:1px solid ${m[1]}66">${m[0]}軍</span>`;
+}
+
 function renderRaces(){
   const root=document.getElementById('races');
   root.innerHTML=RACES.map(r=>{
@@ -413,19 +523,20 @@ function renderRaces(){
     const rows=r.top5.map(h=>{
       const tag = h.tag==='tp'?'<span class="tag tp">首選</span>':(h.tag==='val'?'<span class="tag val">冷馬</span>':'');
       const isFav=h.no===r.fav;
+      const pos=placeOf(r.no,h.no);
       const qplCell = isFav
         ? '<span class="na">—（即首選）</span>'
         : `<span class="na" data-odds data-race="${r.no}" data-horse="${h.no}" data-pool="qpl">N/A</span>`;
-      return `<tr>
+      return `<tr${pos?' style="background:rgba(232,185,35,.06)"':''}>
         <td>${r.no}</td>
         <td>${r.time}</td>
         <td class="no ${h.tag==='tp'?'toppick':''}">${h.no}</td>
-        <td class="horse" onclick="openHorse(${r.no},${h.no})">${h.name}${tag}</td>
+        <td class="horse" onclick="openHorse(${r.no},${h.no})">${h.name}${tag}${placeBadge(pos)}</td>
         <td><span class="winbar" style="width:${h.win*3}px"></span>${h.win}%</td>
         <td data-odds data-race="${r.no}" data-horse="${h.no}" data-pool="win"><span class="na">N/A</span></td>
         <td data-odds data-race="${r.no}" data-horse="${h.no}" data-pool="pla"><span class="na">N/A</span></td>
         <td>${qplCell}</td>
-        <td><span class="na" id="lu_${r.no}_${h.no}">—</span></td>
+        <td>${pos?('<b style="color:var(--gold)">第'+pos+'名</b>'):'<span class="na">—</span>'}</td>
       </tr>`;
     }).join('');
     const tp=r.top5.find(h=>h.tag==='tp');
@@ -436,17 +547,44 @@ function renderRaces(){
       <table>
         <thead><tr>
           <th>場</th><th>開跑(HKT)</th><th>馬號</th><th>馬名</th><th>估算勝算</th>
-          <th>獨贏 (Δ1h)</th><th>位置 (Δ1h)</th><th>位置Q／首選 (Δ1h)</th><th>賠率更新(HKT)</th>
+          <th>獨贏 (Δ60s)</th><th>位置 (Δ60s)</th><th>位置Q／首選 (Δ60s)</th><th>賽果名次</th>
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>
+      ${renderResultBlock(r)}
       <div class="note">
         <div class="row"><span class="lab">本場首選：</span>#${tp.no} ${tp.name}（${tp.jky}／估 ${tp.win}%）— ${tp.reason}</div>
         <div class="row"><span class="lab v">值博／冷馬：</span>#${r.value.no} ${r.value.name} — ${r.value.reason}</div>
-        <div class="row" style="color:var(--muted)"><span class="lab" style="color:var(--muted)">位置Q配搭：</span>各推介馬均與本場首選 ${favLabel} 配對顯示；🔴/🟤 急跌走勢待賠率開盤後自動標示，現時為 <span class="na">N/A</span>。</div>
+        <div class="row" style="color:var(--muted)"><span class="lab" style="color:var(--muted)">位置Q配搭：</span>各推介馬均與本場首選 ${favLabel} 配對顯示；🔴/🟤 急跌走勢以 60 秒窗計算，需有賠率快照方會標示。</div>
       </div>
     </section>`;
   }).join('');
+}
+
+// 賽果區塊：有官方賽果則顯示前四名及派彩，並標示本頁推介命中與否
+function renderResultBlock(r){
+  const R=RESULTS[r.no];
+  if(!R){
+    return `<div class="resultbox pending">第 ${r.no} 場賽果：<span class="na">未有賽果（未開跑或未公佈）</span>
+      <span style="color:var(--muted);font-size:12px">按上方「更新賽果」嘗試自動拉取（經代理）</span></div>`;
+  }
+  const order=R.placings.map(p=>`<b>${p.pos}.</b> #${p.no} ${p.name}（${p.jky}）`).join('　');
+  const pla=R.pla.map(x=>`#${x.no} $${x.div}`).join('・');
+  const qpl=R.qpl.map(x=>`${x.pair} $${x.div}`).join('・');
+  // 命中：本頁 Top5 有否在前三名
+  const picks=r.top5.map(h=>h.no);
+  const hit=R.placings.filter(p=>p.pos<=3 && picks.includes(p.no)).map(p=>`#${p.no} ${p.name}（第${p.pos}名）`);
+  const winInPicks=picks.includes(R.win.no);
+  const hitTxt = hit.length
+    ? `本頁推介命中入三甲：${hit.join('、')}${winInPicks?'':'；惟冠軍 #'+R.win.no+' 不在本頁 Top5（賽馬難免冷門）'}`
+    : `本頁 Top5 未中三甲（冠軍 #${R.win.no}）— 賽馬存在運氣成分，估算僅供參考`;
+  return `<div class="resultbox done">
+    <div class="rhead">🏁 第 ${r.no} 場賽果　<span style="color:var(--muted);font-weight:500">完成時間 ${R.time}</span>
+      <a href="${R.src}" target="_blank" rel="noopener" style="float:right;font-size:12px">↗ 官方賽果</a></div>
+    <div class="rline">${order}</div>
+    <div class="rline"><span class="rk2">獨贏</span> #${R.win.no} $${R.win.div}　<span class="rk2">位置</span> ${pla}　<span class="rk2">位置Q</span> ${qpl}</div>
+    <div class="rline hit">${hitTxt}</div>
+  </div>`;
 }
 
 function openHorse(rno,hno){
@@ -490,9 +628,19 @@ function openHorse(rno,hno){
           <span class="k">位置</span><span class="v"><span class="na">N/A</span></span>
           <span class="k">位置Q（與 #${favHorse?favHorse.no:r.fav} ${favHorse?favHorse.name:''} 配）</span><span class="v">${h.no===r.fav?'—（即首選）':'<span class="na">N/A</span>'}</span>
         </div>
-        <div style="color:var(--muted);font-size:12px;margin-top:6px">賠率源未開盤／受 CORS 限制，開盤後 60 秒輪詢自動填入並計算一小時跌幅上色。</div>
+        <div style="color:var(--muted);font-size:12px;margin-top:6px">馬會已無公開賠率介面，靜態頁自動拉取未必成功；可用「輸入賠率快照」貼上真實賠率，系統以 <b>60 秒</b>窗計算跌幅並依 §5 上色。</div>
       </div>
     </div>
+
+    ${RESULTS[r.no] ? `<div class="src">
+      <div class="sh"><span class="dot"></span>賽果（官方・已核實）</div>
+      <div class="sb">
+        <div class="kv">
+          ${RESULTS[r.no].placings.map(p=>`<span class="k">第 ${p.pos} 名</span><span class="v">#${p.no} ${p.name}（${p.jky}）${p.no===h.no?' ◀ 本駒':''}</span>`).join('')}
+        </div>
+        <div style="margin-top:6px;font-size:12px">本駒名次：${placeOf(r.no,h.no)?('<b style="color:var(--gold)">第'+placeOf(r.no,h.no)+'名</b>'):'未列前四'}　｜　完成時間 ${RESULTS[r.no].time}</div>
+      </div>
+    </div>` : ''}
 
     <div class="src">
       <div class="sh"><span class="dot off"></span>名家貼士票數 & 落飛／大票房資金流</div>
@@ -513,14 +661,81 @@ function openHorse(rno,hno){
 }
 function closeModal(){ document.getElementById('mask').classList.remove('on'); }
 
+/* ============================================================
+   賽果自動更新（best-effort，經代理抓官方賽果頁並保守解析）
+   只在能可靠解析出名次（≥3）時才更新，避免任何錯誤資料。
+   ============================================================ */
+async function fetchResult(raceno){
+  const target=`https://racing.hkjc.com/zh-hk/local/information/localresults?racedate=${RACE_DATE.replace(/-/g,'/')}&Racecourse=ST&RaceNo=${raceno}`;
+  const res=await fetch(PROXY(target),{cache:'no-store'});
+  const html=await res.text();
+  const doc=new DOMParser().parseFromString(html,'text/html');
+
+  // 名次表：含「名次」「騎師」且每行有 horseid 連結
+  let table=null;
+  doc.querySelectorAll('table').forEach(t=>{ if(!table && /名次/.test(t.textContent) && /騎師/.test(t.textContent) && /horseid=/.test(t.innerHTML)) table=t; });
+  if(!table) throw new Error('no result table');
+  const placings=[];
+  table.querySelectorAll('tr').forEach(tr=>{
+    const tds=tr.querySelectorAll('td'); if(tds.length<4) return;
+    const pos=parseInt(tds[0].textContent.trim());
+    const no=parseInt(tds[1].textContent.trim());
+    const name=tds[2].textContent.trim().replace(/\s*\(.*$/,'').replace(/\s+/g,'');
+    const jky=tds[3].textContent.trim().replace(/\s+/g,'');
+    if(pos>=1&&pos<=14&&no&&name) placings.push({pos,no,name,jky});
+  });
+  if(placings.length<3) throw new Error('incomplete placings');
+
+  // 派彩表：跨行沿用上一個彩池名稱
+  let win=null, pla=[], qpl=[];
+  let ptable=null;
+  doc.querySelectorAll('table').forEach(t=>{ if(!ptable && /(派彩|彩池)/.test(t.textContent)) ptable=t; });
+  if(ptable){
+    let cur='';
+    ptable.querySelectorAll('tr').forEach(tr=>{
+      const c=[...tr.querySelectorAll('td')].map(x=>x.textContent.trim());
+      if(c.length<2) return;
+      let pool=c[0], combo, div;
+      if(c.length>=3){ pool=c[0]; combo=c[1]; div=c[2]; } else { combo=c[0]; div=c[1]; }
+      if(/獨贏|位置|位置Q|連贏/.test(pool)) cur=pool;
+      div=(div||'').replace(/,/g,'');
+      if(!/[0-9]/.test(div)) return;
+      if(/獨贏/.test(cur) && win===null) win={no:parseInt(combo)||placings[0].no, div:(+div).toFixed(2)};
+      else if(/位置Q/.test(cur)) qpl.push({pair:(combo||'').replace(/\s/g,''), div:(+div).toFixed(2)});
+      else if(/位置/.test(cur)) pla.push({no:parseInt(combo), div:(+div).toFixed(2)});
+    });
+  }
+  const tm=(doc.body.textContent.match(/\(([0-9]:[0-9]{2}\.[0-9]{2})\)/)||[])[1]||'';
+  return {placings:placings.slice(0,4), win:win||{no:placings[0].no,div:'—'}, pla, qpl, time:tm, src:target};
+}
+
+async function refreshResults(){
+  const btn=document.getElementById('resultBtn'); const old=btn.textContent; btn.textContent='更新賽果中…';
+  let got=0;
+  for(const r of RACES){
+    try{ const R=await fetchResult(r.no); if(R&&R.placings.length>=3){ RESULTS[r.no]=R; got++; } }
+    catch(e){ /* 未開跑／解析不到／代理失敗 → 略過，保留已有（含 R1 已核實） */ }
+  }
+  renderRaces(); applyColours(pruneHist(loadHist()));
+  btn.textContent=old;
+  alert(got?('已更新／確認 '+got+' 場賽果（'+fmtHKT(new Date())+' HKT）。未開跑或未公佈者維持「未有賽果」。')
+           :('暫未能自動取得新賽果（代理或來源限制）。已核實之賽果（如第1場）維持顯示；可按官方賽果連結查看。'));
+}
+
 /* init */
 renderRaces();
 document.getElementById('mask').addEventListener('click',e=>{ if(e.target.id==='mask')closeModal(); });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape')closeModal(); });
 document.getElementById('refreshBtn').onclick=refreshAll;
+document.getElementById('proxyBtn').onclick=openProxyInput;
+document.getElementById('snapBtn').onclick=openSnapInput;
+document.getElementById('resultBtn').onclick=refreshResults;
+updateProxyPill();
 function tickClock(){ document.getElementById('clock').textContent=fmtHKT(new Date())+' HKT'; }
 tickClock(); setInterval(tickClock,1000);
+applyColours(pruneHist(loadHist()));   // 載入時套用既有手動快照
 refreshAll(); setInterval(refreshAll,60*1000);
+refreshResults();                       // 載入時嘗試自動取賽果（best-effort）
 </script>
 </body>
 </html>
