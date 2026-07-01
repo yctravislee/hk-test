@@ -77,6 +77,30 @@
   td.cell-brown{background:var(--brownbg)}
   td.cell-green{background:var(--greenbg)}
   .na{color:#62748f;font-style:italic}
+  .wmini{font-size:10px;line-height:1.4;margin-top:2px;white-space:nowrap}
+  .wseg{margin-right:4px;color:var(--muted)}
+  .wseg.g{color:#5fd58c} .wseg.b{color:#d9a066} .wseg.r{color:#ff7b78;font-weight:700} .wseg.up{color:#7fa6d9}
+  .wseg.na{color:#4a5870}
+  .strip{padding:7px 14px;border-bottom:1px solid var(--line);font-size:12px;background:rgba(255,255,255,.02);line-height:1.95}
+  .strip b{color:var(--accent2)}
+  .strip.mkt5 b{color:#ff8b88}
+  .t5{display:inline-block;margin-right:10px;color:var(--txt);white-space:nowrap}
+  .t5 i{color:var(--gold);font-style:normal;font-weight:700}
+  tr.pick{background:rgba(232,185,35,.07)}
+  tr.pick td.no{color:var(--gold)}
+  tr.placed td.no{box-shadow:inset 3px 0 0 var(--gold)}
+  .rk{display:inline-block;margin-right:5px;color:var(--gold);font-weight:800}
+  .mkt{display:inline-block;margin-left:5px;font-size:10px;font-weight:700;padding:0 4px;border-radius:5px;vertical-align:middle}
+  .mkt.m1{background:var(--redbg);color:#ff8b88;border:1px solid var(--red)}
+  .mkt.m2,.mkt.m3{background:rgba(232,140,35,.18);color:#ffba6b;border:1px solid rgba(232,140,35,.5)}
+  .mkt.m4,.mkt.m5{background:rgba(79,157,255,.14);color:var(--accent2);border:1px solid rgba(79,157,255,.4)}
+  .cd{font-size:12px;font-weight:700;padding:2px 8px;border-radius:7px;background:var(--panel);color:var(--muted);border:1px solid var(--line)}
+  .cd.c30{background:rgba(232,185,35,.16);color:#f1d36b;border-color:rgba(232,185,35,.45)}
+  .cd.c15{background:rgba(232,140,35,.18);color:#ffba6b;border-color:rgba(232,140,35,.5)}
+  .cd.c5{background:var(--redbg);color:#ff8b88;border-color:var(--red);animation:pulse 1.2s infinite}
+  .cd.off{background:rgba(120,140,170,.15);color:#aebbd0}
+  .cd.done{background:var(--greenbg);color:#7fe3a8;border-color:rgba(31,170,89,.5)}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
 
   .note{padding:12px 16px;border-top:1px solid var(--line);font-size:13.5px;background:var(--panel2)}
   .note .lab{color:var(--gold);font-weight:800;margin-right:6px}
@@ -144,26 +168,26 @@
     <button class="btn" id="proxyBtn" style="background:#5a3a7e;color:#e6d2ff">設定代理網址</button>
     <button class="btn" id="snapBtn" style="background:#2c4a6e;color:#cfe3ff">輸入賠率快照</button>
     <button class="btn" id="resultBtn" style="background:#2c6e4a;color:#d2ffe3">更新賽果</button>
-    <span style="color:var(--muted);font-size:12.5px">每 60 秒自動嘗試（Option A）・上色比較窗 = 60 秒</span>
+    <span style="color:var(--muted);font-size:12.5px">每 60 秒自動更新（Option A）・上色窗：5 分鐘為主，另列 15 分鐘／開盤</span>
   </div>
 
   <div class="notice" id="feedNotice">
     <b>賠率自動更新的技術限制（重要・誠實說明）：</b>馬會已取消公開的賠率 JSON 介面，現時即時賠率只能透過
     bet.hkjc.com 的 JavaScript 程式／GraphQL 載入；靜態網頁（GitHub Pages）受跨網域（CORS）限制，
     <b>無法可靠地自動拉取馬會即時獨贏／位置／位置Q 賠率</b>。因此「自動拉賠率」在純靜態頁面並不能保證成功，這非設定問題，而是來源端的限制。
-    <br>本頁提供三條可行路徑：(1) <b>真・全自動（建議）</b>：自建免費 Cloudflare Worker 代理（檔案 hkjc-odds-worker.js 已附），按 <b>「設定代理網址」</b>貼上 Worker 網址，便會經馬會官方 GraphQL 每60秒自動更新獨贏／位置／位置Q 並依60秒窗上色；
-    (2) <b>「輸入賠率快照」</b>可貼上你在馬會 App 看到的真實賠率（CSV），系統打時戳儲存、以 <b>60 秒</b>窗比較上色（無需代理）；
+    <br>本頁提供三條可行路徑：(1) <b>真・全自動（建議）</b>：自建免費 Cloudflare Worker 代理（檔案 hkjc-odds-worker.js 已附），按 <b>「設定代理網址」</b>貼上 Worker 網址，便會經馬會官方 GraphQL 每60秒自動更新獨贏／位置／位置Q 並依5分鐘窗上色；
+    (2) <b>「輸入賠率快照」</b>可貼上你在馬會 App 看到的真實賠率（CSV），系統打時戳儲存、以 <b>5 分鐘</b>窗比較上色（無需代理）；
     (3) 由分析員以排程快照（Option B）定時補入。
     <br><b>誠實聲明：</b>本頁不會虛構任何賠率或賽果；所有排位、往績、評分、檔位、騎練、賽果與派彩均取自馬會官方資料（已核實）。
   </div>
 
   <div class="legend">
-    <b style="color:var(--txt)">60 秒內急跌上色規則：</b>
+    <b style="color:var(--txt)">急跌上色（5 分鐘為主，另列 15 分鐘／開盤）：</b>
     <span class="sw"><span class="box r"></span> 跌幅 ≥ 25% 紅</span>
     <span class="sw"><span class="box b"></span> 20–25% 啡</span>
     <span class="sw"><span class="box g"></span> 10–20% 綠</span>
     <span class="sw">＜10% 不上色</span>
-    <span style="margin-left:auto">跌幅% =（60 秒前賠率 − 現時賠率）÷ 60 秒前賠率 × 100</span>
+    <span style="margin-left:auto">跌幅% =（5 分鐘前 − 現時）÷ 5 分鐘前 × 100；另計 15 分鐘及自開盤總跌幅</span>
   </div>
 
   <div id="races"></div>
@@ -180,7 +204,7 @@
     <div>排位／往績／評分／檔位／騎練／最佳時間：香港賽馬會官方排位表 racing.hkjc.com（2026/06/27 沙田，已核實，共 11 場）。</div>
     <div>排名方法（§3）：綜合近 6 仗往績與上名穩定度、評分相對讓賽分段、檔位與路程／賽道適性、騎練往績、草地／全天候適應、最佳時間（速度指標）、以及市場與貼士走向。勝算為相對估算，未必相加等於 100%。</div>
     <div>賽果與派彩：香港賽馬會官方賽果頁 racing.hkjc.com（已核實；其餘場次完成後可按「更新賽果」經代理嘗試自動補入，解析不到則維持「未有賽果」）。</div>
-    <div>賠率上色：§5 規則以 <b>60 秒</b>滾動窗計算跌幅%（紅 ≥25%、啡 20–25%、綠 10–20%、＜10% 不上色）。馬會已取消公開賠率 JSON，靜態頁自動拉取未必成功；「輸入賠率快照」貼上真實賠率為最可靠來源。</div>
+    <div>賠率上色：§5 規則以 <b>5 分鐘</b>窗為主計算跌幅%（紅 ≥25%、啡 20–25%、綠 10–20%、＜10% 不上色），另並列 15 分鐘及自開盤總跌幅；全程持續記錄，臨場 30→15→5 分鐘重點標示。馬會已取消公開賠率 JSON，靜態頁自動拉取未必成功；「輸入賠率快照」貼上真實賠率為最可靠來源。</div>
     <div>仍標示 N/A 的資料：未有真實賠率快照前的獨贏／位置／位置Q；名家貼士票數與落飛／大票房資金流（動態頁面，伺服器端未能可靠解析）。</div>
     <div style="margin-top:6px">本頁為單一 HTML 檔，可離線開啟；自動更新需連線且資料源可讀取時方會生效。</div>
   </footer>
@@ -338,16 +362,210 @@ const RESULTS = {
 };
 
 /* ============================================================
+   全場馬匹（FIELD）：每場所有出賽馬（取自馬會官方排位表，已核實）
+   欄位：no 馬號, name 馬名, code 烙號, jky 騎師, draw 檔, trn 練馬師, rt 評分, last6 近6仗, bt 最佳時間
+   id 由烙號首字母推算季度。Top 5 之估算%／理由仍由 RACES.top5 提供。
+   ============================================================ */
+const YEAR={D:'2019',E:'2020',F:'2020',G:'2021',H:'2022',J:'2023',K:'2024',L:'2025'};
+function horseUrlByCode(code){ return `https://racing.hkjc.com/zh-hk/local/information/horse?horseid=HK_${YEAR[(code||'')[0]]||'2024'}_${code}`; }
+const FIELD = {
+ 1:[
+  {no:1,name:"金風萬里",code:"K150",jky:"田泰安",draw:6,trn:"桂福特",rt:40,last6:"2/8/3/10/8/12",bt:"1.09.09"},
+  {no:2,name:"英雄豪邁",code:"G394",jky:"巴度",draw:1,trn:"徐雨石",rt:39,last6:"8/3/4/8/5/3",bt:"—"},
+  {no:3,name:"果然僥倖",code:"H252",jky:"奧爾民",draw:5,trn:"蘇偉賢",rt:38,last6:"2/6/10/2/6/3",bt:"1.09.47"},
+  {no:4,name:"翠湖烈風",code:"J288",jky:"潘頓",draw:12,trn:"賀賢",rt:38,last6:"7/10/3/5/10/8",bt:"1.10.03"},
+  {no:5,name:"洛河",code:"J308",jky:"袁幸堯(-10)",draw:2,trn:"丁冠豪",rt:38,last6:"5/10/10/8/3/3",bt:"1.10.12"},
+  {no:6,name:"海王",code:"K523",jky:"金誠剛",draw:10,trn:"鄭俊偉",rt:37,last6:"7/13/10/7/3/11",bt:"1.10.35"},
+  {no:7,name:"後無來者",code:"K049",jky:"莫雷拉",draw:11,trn:"方嘉柏",rt:36,last6:"3/9/5/3/5/10",bt:"1.09.93"},
+  {no:8,name:"迅意",code:"K250",jky:"希威森",draw:3,trn:"韋達",rt:33,last6:"10/11/3/7/6/4",bt:"1.09.51"},
+  {no:9,name:"鑽得勝",code:"K216",jky:"布文",draw:4,trn:"葉楚航",rt:32,last6:"4/10/4/10/8/8",bt:"1.10.05"},
+  {no:10,name:"綫路光驊",code:"H487",jky:"黃寶妮(-7)",draw:13,trn:"文家良",rt:28,last6:"11/7/5/7/7/13",bt:"1.09.62"},
+  {no:11,name:"鼓浪高升",code:"J479",jky:"霍宏聲",draw:14,trn:"伍鵬志",rt:28,last6:"10/7/10/9/12/6",bt:"1.09.18"},
+  {no:12,name:"萬事得意",code:"K171",jky:"鍾易禮(-2)",draw:9,trn:"告東尼",rt:24,last6:"13/12/12/11/14/10",bt:"1.09.54"},
+  {no:13,name:"快馬加鞭",code:"H144",jky:"蔡明紹",draw:7,trn:"巫偉傑",rt:20,last6:"3/11/7/7/8/3",bt:"1.09.03"},
+  {no:14,name:"太行美景",code:"J314",jky:"黃智弘(-3)",draw:8,trn:"沈集成",rt:20,last6:"6/4/4/8/11/2",bt:"1.09.37"}
+ ],
+ 2:[
+  {no:1,name:"新力驕",code:"J223",jky:"潘頓",draw:12,trn:"蘇偉賢",rt:40,last6:"7/3/9/8/9/5",bt:"1.08.77"},
+  {no:2,name:"鄉村樂韻",code:"H436",jky:"艾兆禮",draw:5,trn:"蔡約翰",rt:39,last6:"1/8/5/10/7/12",bt:"1.09.40"},
+  {no:3,name:"本能",code:"K289",jky:"何澤堯",draw:3,trn:"徐雨石",rt:37,last6:"1/6/13/8/10/9",bt:"1.09.86"},
+  {no:4,name:"紅海風帆",code:"H347",jky:"黃寶妮(-7)",draw:6,trn:"文家良",rt:37,last6:"9/8/9/10/8/5",bt:"1.08.84"},
+  {no:5,name:"花香月明",code:"K276",jky:"奧爾民",draw:9,trn:"韋達",rt:37,last6:"4/12/7/9/10/10",bt:"1.09.52"},
+  {no:6,name:"同有運",code:"H349",jky:"鍾易禮(-2)",draw:13,trn:"伍鵬志",rt:36,last6:"14/10/5/5/11/12",bt:"1.08.81"},
+  {no:7,name:"銳一",code:"J037",jky:"梁家俊",draw:8,trn:"桂福特",rt:35,last6:"6/10/2/4/2/8",bt:"1.09.70"},
+  {no:8,name:"八里旺",code:"J243",jky:"希威森",draw:4,trn:"鄭俊偉",rt:34,last6:"8/4/2/9/9/3",bt:"1.09.54"},
+  {no:9,name:"快樂寶寶",code:"J545",jky:"艾道拿",draw:10,trn:"巫偉傑",rt:31,last6:"11/5/6/9/3/3",bt:"1.09.66"},
+  {no:10,name:"建測精英",code:"K198",jky:"布文",draw:7,trn:"黎昭昇",rt:31,last6:"10/6/5/11/9/10",bt:"1.08.75"},
+  {no:11,name:"星之願",code:"J480",jky:"布浩榮",draw:11,trn:"廖康銘",rt:29,last6:"9/3/11/11/7/11",bt:"1.09.56"},
+  {no:12,name:"朗日雪峰",code:"J187",jky:"莫雷拉",draw:1,trn:"方嘉柏",rt:29,last6:"3/7/4/3/9/1",bt:"1.09.78"},
+  {no:13,name:"東方福寶",code:"K115",jky:"潘明輝",draw:14,trn:"姚本輝",rt:20,last6:"2/12/6/6/7/14",bt:"1.10.15"},
+  {no:14,name:"常多笑",code:"J538",jky:"巴度",draw:2,trn:"沈集成",rt:19,last6:"10/8/8/13/9/10",bt:"1.09.74"}
+ ],
+ 3:[
+  {no:1,name:"穿甲戰鷹",code:"J039",jky:"艾兆禮",draw:14,trn:"廖康銘",rt:60,last6:"2/9/6/2/2/3",bt:"1.08.94"},
+  {no:2,name:"正極",code:"K367",jky:"布文",draw:1,trn:"沈集成",rt:57,last6:"11/11/7/7/7/11",bt:"1.09.30"},
+  {no:3,name:"確好勁",code:"K199",jky:"梁家俊",draw:4,trn:"文家良",rt:56,last6:"5/6/12/10/7/2",bt:"—"},
+  {no:4,name:"鋼鐵安防",code:"L174",jky:"黃寶妮(-7)",draw:11,trn:"鄭俊偉",rt:56,last6:"9/10/10/11/9",bt:"1.11.49"},
+  {no:5,name:"千杯敬典",code:"H321",jky:"袁幸堯(-10)",draw:12,trn:"姚本輝",rt:54,last6:"9/5/6/5/3/7",bt:"1.09.20"},
+  {no:6,name:"團結戰靈",code:"K132",jky:"希威森",draw:2,trn:"桂福特",rt:53,last6:"4/4/6/3/2/9",bt:"1.09.59"},
+  {no:7,name:"加州勇勝",code:"K364",jky:"田泰安",draw:8,trn:"告東尼",rt:52,last6:"5/7/1/9/12/5",bt:"1.09.60"},
+  {no:8,name:"合夥智能",code:"L280",jky:"奧爾民",draw:5,trn:"呂健威",rt:52,last6:"新馬",bt:"—"},
+  {no:9,name:"勇騎飛",code:"L146",jky:"楊明綸",draw:10,trn:"蘇偉賢",rt:52,last6:"12",bt:"—"},
+  {no:10,name:"小魔怪",code:"K391",jky:"何澤堯",draw:3,trn:"巫偉傑",rt:51,last6:"5/1/4/5/6/9",bt:"1.09.15"},
+  {no:11,name:"嘉應光彩",code:"K134",jky:"潘頓",draw:7,trn:"大衛希斯",rt:47,last6:"2/9/13/6/9/4",bt:"1.09.14"},
+  {no:12,name:"榮耀盛甲",code:"K290",jky:"鍾易禮(-2)",draw:6,trn:"游達榮",rt:43,last6:"12/8/13/1/8/12",bt:"—"},
+  {no:13,name:"靖哥哥",code:"K503",jky:"潘明輝",draw:13,trn:"葉楚航",rt:42,last6:"12/10/3/11/7/7",bt:"1.10.39"},
+  {no:14,name:"步步合拍",code:"L252",jky:"巴度",draw:9,trn:"蔡約翰",rt:42,last6:"12/8/9/14/10/10",bt:"1.09.80"}
+ ],
+ 4:[
+  {no:1,name:"優才",code:"J536",jky:"袁幸堯(-10)",draw:1,trn:"葉楚航",rt:60,last6:"5/11/4/7/5/6",bt:"2.00.89"},
+  {no:2,name:"雙贏",code:"H382",jky:"何澤堯",draw:11,trn:"文家良",rt:58,last6:"1/2/5/3/10/6",bt:"2.01.23"},
+  {no:3,name:"同益善",code:"K254",jky:"布浩榮",draw:14,trn:"游達榮",rt:56,last6:"13/9/8/1/2/4",bt:"2.00.95"},
+  {no:4,name:"安可",code:"K252",jky:"布文",draw:7,trn:"蔡約翰",rt:56,last6:"3/2/9/5/8/6",bt:"2.01.07"},
+  {no:5,name:"勁步速",code:"K351",jky:"巫顯東(-2)",draw:3,trn:"徐雨石",rt:52,last6:"9/5/10/12/9/8",bt:"2.02.55"},
+  {no:6,name:"風火恆雲",code:"H388",jky:"潘明輝",draw:13,trn:"姚本輝",rt:52,last6:"5/1/2/8/3/2",bt:"2.00.98"},
+  {no:7,name:"佰勝金龍",code:"K458",jky:"梁家俊",draw:8,trn:"巫偉傑",rt:51,last6:"3/2/1/6/14/6",bt:"2.01.65"},
+  {no:8,name:"大輝煌",code:"K205",jky:"艾兆禮",draw:6,trn:"羅富全",rt:48,last6:"13/11/6",bt:"2.03.06"},
+  {no:9,name:"愛心波",code:"L006",jky:"艾道拿",draw:10,trn:"賀賢",rt:46,last6:"7/4/3/4/5/10",bt:"—"},
+  {no:10,name:"蜜蜜送",code:"J502",jky:"田泰安",draw:5,trn:"韋達",rt:45,last6:"6/4/9/11/10/4",bt:"2.01.82"},
+  {no:11,name:"夢照發",code:"H168",jky:"巴度",draw:12,trn:"黎昭昇",rt:45,last6:"8/14/1/5/3/2",bt:"2.02.53"},
+  {no:12,name:"富喜來",code:"H213",jky:"鍾易禮(-2)",draw:4,trn:"沈集成",rt:44,last6:"10/10/3/1/12/11",bt:"2.01.86"},
+  {no:13,name:"齊歡最樂",code:"J182",jky:"希威森",draw:9,trn:"伍鵬志",rt:42,last6:"9/1/13/5/8/10",bt:"2.03.28"},
+  {no:14,name:"禾道威",code:"J463",jky:"楊明綸",draw:2,trn:"大衛希斯",rt:41,last6:"4/9/6/3/2/5",bt:"2.01.02"}
+ ],
+ 5:[
+  {no:1,name:"開心宇宙",code:"J533",jky:"梁家俊",draw:5,trn:"丁冠豪",rt:60,last6:"2/10/1/6/2/2",bt:"1.38.54"},
+  {no:2,name:"奮鬥心",code:"J267",jky:"潘頓",draw:8,trn:"伍鵬志",rt:59,last6:"9/11/4/2/9/1",bt:"1.38.33"},
+  {no:3,name:"贏得威楓",code:"L248",jky:"霍宏聲",draw:14,trn:"桂福特",rt:58,last6:"6/11/10/10",bt:"—"},
+  {no:4,name:"超加加",code:"J486",jky:"金誠剛",draw:2,trn:"姚本輝",rt:57,last6:"3/2/13/13/7/11",bt:"1.38.05"},
+  {no:5,name:"精彩動力",code:"H120",jky:"莫雷拉",draw:1,trn:"方嘉柏",rt:52,last6:"5/6/5/10/13/11",bt:"1.37.94"},
+  {no:6,name:"加州星馳",code:"J123",jky:"蔡明紹",draw:3,trn:"告東尼",rt:51,last6:"7/7/10/12/7/2",bt:"1.38.29"},
+  {no:7,name:"風繼續吹",code:"E471",jky:"布浩榮",draw:13,trn:"鄭俊偉",rt:50,last6:"11/1/11/7/4/7",bt:"1.38.56"},
+  {no:8,name:"天威",code:"J200",jky:"楊明綸",draw:12,trn:"羅富全",rt:50,last6:"13/5/5/5/6/8",bt:"1.38.34"},
+  {no:9,name:"揀馬之皇",code:"K397",jky:"奧爾民",draw:4,trn:"賀賢",rt:48,last6:"12/12/12/11/12/11",bt:"—"},
+  {no:10,name:"午夜快車",code:"J510",jky:"巴度",draw:7,trn:"徐雨石",rt:48,last6:"9/1/9/6/3/6",bt:"1.38.58"},
+  {no:11,name:"領創動力",code:"J058",jky:"黃智弘(-3)",draw:10,trn:"沈集成",rt:46,last6:"1/11/5/7/1/1",bt:"1.38.67"},
+  {no:12,name:"林寶精神",code:"K305",jky:"希威森",draw:9,trn:"廖康銘",rt:44,last6:"11/4/2/4/4/4",bt:"1.38.31"},
+  {no:13,name:"勇者無敵",code:"K217",jky:"田泰安",draw:11,trn:"韋達",rt:40,last6:"9/6/9/2/2/5",bt:"—"},
+  {no:14,name:"川河型駒",code:"J080",jky:"鍾易禮(-2)",draw:6,trn:"游達榮",rt:40,last6:"6/12/10/7/7/13",bt:"1.38.42"}
+ ],
+ 6:[
+  {no:1,name:"怡昌光輝",code:"K074",jky:"布文",draw:3,trn:"黎昭昇",rt:59,last6:"12/7/5/6/4/1",bt:"1.09.06"},
+  {no:2,name:"縱橫天下",code:"G123",jky:"布浩榮",draw:9,trn:"鄭俊偉",rt:57,last6:"9/2/8/11/1/9",bt:"1.09.72"},
+  {no:3,name:"風采人生",code:"J366",jky:"莫雷拉",draw:7,trn:"方嘉柏",rt:56,last6:"3/1/7/3/1/12",bt:"1.09.09"},
+  {no:4,name:"老鼠斑",code:"L233",jky:"潘頓",draw:10,trn:"沈集成",rt:52,last6:"8/8/2",bt:"1.09.78"},
+  {no:5,name:"神箭",code:"L254",jky:"希威森",draw:6,trn:"桂福特",rt:52,last6:"8",bt:"—"},
+  {no:6,name:"銳不可當",code:"L205",jky:"奧爾民",draw:5,trn:"蘇偉賢",rt:52,last6:"6",bt:"1.09.62"},
+  {no:7,name:"星光大道",code:"L194",jky:"霍宏聲",draw:14,trn:"韋達",rt:50,last6:"7/6/3",bt:"1.08.83"},
+  {no:8,name:"嘉應駿馬",code:"J439",jky:"田泰安",draw:8,trn:"大衛希斯",rt:48,last6:"4/6/6/4/1/4",bt:"1.09.17"},
+  {no:9,name:"大才",code:"G192",jky:"潘明輝",draw:2,trn:"葉楚航",rt:46,last6:"5/8/8/7/9/7",bt:"1.08.74"},
+  {no:10,name:"快樂高球",code:"J222",jky:"袁幸堯(-10)",draw:11,trn:"羅富全",rt:45,last6:"3/1/4/3/11/4",bt:"1.08.91"},
+  {no:11,name:"一路精彩",code:"K354",jky:"何澤堯",draw:4,trn:"呂健威",rt:44,last6:"11/9/14/8/7",bt:"1.09.61"},
+  {no:12,name:"金多囍",code:"K272",jky:"梁家俊",draw:1,trn:"伍鵬志",rt:44,last6:"10/7/12/3/11/7",bt:"1.09.11"},
+  {no:13,name:"有你有我",code:"H057",jky:"艾兆禮",draw:12,trn:"廖康銘",rt:43,last6:"2/3/11/5/3/10",bt:"1.08.97"},
+  {no:14,name:"全神貫注",code:"H465",jky:"巫顯東(-2)",draw:13,trn:"姚本輝",rt:41,last6:"7/7/7/3/1/1",bt:"1.09.54"}
+ ],
+ 7:[
+  {no:1,name:"喜悅歡欣",code:"L322",jky:"奧爾民",draw:1,trn:"廖康銘",rt:60,last6:"1",bt:"1.20.81"},
+  {no:2,name:"渡月橋",code:"K334",jky:"田泰安",draw:13,trn:"桂福特",rt:59,last6:"7/13/7/2/1/6",bt:"1.24.02"},
+  {no:3,name:"哈羅威",code:"J280",jky:"布浩榮",draw:2,trn:"呂健威",rt:57,last6:"4/10/4/5/3/5",bt:"1.21.13"},
+  {no:4,name:"光年程祥",code:"K204",jky:"布文",draw:12,trn:"游達榮",rt:56,last6:"3/3/4/7/2/4",bt:"1.21.65"},
+  {no:5,name:"創寶駒",code:"L161",jky:"潘頓",draw:14,trn:"黎昭昇",rt:54,last6:"2/3/3/5/7/2",bt:"1.21.05"},
+  {no:6,name:"八仟好運",code:"K582",jky:"艾兆禮",draw:4,trn:"蔡約翰",rt:54,last6:"2/3/5/7/7/2",bt:"1.22.39"},
+  {no:7,name:"實力加",code:"K058",jky:"潘明輝",draw:5,trn:"賀賢",rt:53,last6:"5/2/3/8/3/3",bt:"1.21.60"},
+  {no:8,name:"定數",code:"H438",jky:"霍宏聲",draw:8,trn:"丁冠豪",rt:51,last6:"10/8/8/9/7/3",bt:"1.21.38"},
+  {no:9,name:"良言一句",code:"K569",jky:"黃智弘(-3)",draw:3,trn:"沈集成",rt:50,last6:"11/12/4/9",bt:"—"},
+  {no:10,name:"久久為軍",code:"K231",jky:"鍾易禮(-2)",draw:7,trn:"告東尼",rt:48,last6:"13/4/10/11/6/11",bt:"1.21.83"},
+  {no:11,name:"觀萬象",code:"L060",jky:"金誠剛",draw:10,trn:"葉楚航",rt:48,last6:"11/14/12",bt:"1.29.96"},
+  {no:12,name:"天外富天",code:"L328",jky:"艾道拿",draw:6,trn:"大衛希斯",rt:46,last6:"5/10/9/7",bt:"—"},
+  {no:13,name:"觀萬物",code:"K101",jky:"巴度",draw:9,trn:"巫偉傑",rt:43,last6:"12/10/9/1/5/12",bt:"1.22.33"},
+  {no:14,name:"皇帝英豪",code:"J247",jky:"黃寶妮(-7)",draw:11,trn:"文家良",rt:41,last6:"11/8/8/6/4/5",bt:"1.22.89"}
+ ],
+ 8:[
+  {no:1,name:"美麗第一",code:"H294",jky:"田泰安",draw:2,trn:"告東尼",rt:107,last6:"10/8/5/10/1/7",bt:"0.55.67"},
+  {no:2,name:"星際快車",code:"J186",jky:"布文",draw:4,trn:"蔡約翰",rt:102,last6:"4/6/7/6/1/1",bt:"0.55.36"},
+  {no:3,name:"天天同樂",code:"J316",jky:"黃寶妮(-7)",draw:3,trn:"羅富全",rt:100,last6:"3/1/4/7/6/13",bt:"0.56.12"},
+  {no:4,name:"顏色之皇",code:"K227",jky:"艾兆禮",draw:6,trn:"游達榮",rt:97,last6:"11/3/6/6/2/2",bt:"0.55.40"},
+  {no:5,name:"賢者無敵",code:"H301",jky:"奧爾民",draw:9,trn:"賀賢",rt:95,last6:"11/12/3/8/3/12",bt:"0.55.64"},
+  {no:6,name:"昇瀧駒",code:"J141",jky:"蔡明紹",draw:7,trn:"蘇偉賢",rt:90,last6:"8/2/7/1/10/6",bt:"—"},
+  {no:7,name:"魔術控制",code:"J333",jky:"巴度",draw:5,trn:"巫偉傑",rt:88,last6:"2/5/8/9/5/5",bt:"0.55.74"},
+  {no:8,name:"勇敢巨星",code:"G268",jky:"巫顯東(-2)",draw:10,trn:"呂健威",rt:87,last6:"8/2/3/3/14/1",bt:"0.56.90"},
+  {no:9,name:"友愛心得",code:"J537",jky:"楊明綸",draw:8,trn:"大衛希斯",rt:85,last6:"7/11/3/4/1/1",bt:"—"},
+  {no:10,name:"八駿巨昇",code:"H092",jky:"鍾易禮(-2)",draw:1,trn:"告東尼",rt:84,last6:"1/11/9/7/9/14",bt:"0.56.92"},
+  {no:11,name:"好評如潮",code:"L223",jky:"潘明輝",draw:11,trn:"鄭俊偉",rt:80,last6:"8/7/2/2/3/5",bt:"0.55.47"}
+ ],
+ 9:[
+  {no:1,name:"精英雄心",code:"J136",jky:"潘頓",draw:3,trn:"廖康銘",rt:85,last6:"9/2/4/7/3/5",bt:"1.37.91"},
+  {no:2,name:"樂勝天下",code:"J540",jky:"袁幸堯(-10)",draw:14,trn:"姚本輝",rt:85,last6:"5/2/1/2/5/1",bt:"—"},
+  {no:3,name:"鈦易搵",code:"H216",jky:"莫雷拉",draw:9,trn:"方嘉柏",rt:83,last6:"10/10/7/8/8/7",bt:"—"},
+  {no:4,name:"平凡騎士",code:"K161",jky:"黃智弘(-3)",draw:11,trn:"方嘉柏",rt:80,last6:"13/7/8/8/8/9",bt:"—"},
+  {no:5,name:"知足常樂",code:"G448",jky:"梁家俊",draw:2,trn:"羅富全",rt:78,last6:"11/10/6/9/9/7",bt:"1.37.94"},
+  {no:6,name:"川河耀駒",code:"L109",jky:"艾道拿",draw:7,trn:"游達榮",rt:75,last6:"3/9/2/9/4/10",bt:"1.39.98"},
+  {no:7,name:"德心知遇",code:"J133",jky:"艾兆禮",draw:10,trn:"蔡約翰",rt:70,last6:"3/6/1/10/13/10",bt:"1.39.08"},
+  {no:8,name:"自動自覺",code:"K080",jky:"黃寶妮(-7)",draw:1,trn:"羅富全",rt:69,last6:"2/1/3/14/1/9",bt:"—"},
+  {no:9,name:"哪吒",code:"K494",jky:"潘明輝",draw:6,trn:"賀賢",rt:65,last6:"5/7/7/1/11/2",bt:"1.38.13"},
+  {no:10,name:"榮利雙收",code:"K382",jky:"田泰安",draw:12,trn:"大衛希斯",rt:64,last6:"8/7/3/1/3/6",bt:"—"},
+  {no:11,name:"電訊巴打",code:"D482",jky:"巫顯東(-2)",draw:13,trn:"徐雨石",rt:62,last6:"9/12/4/11/14/7",bt:"1.37.33"},
+  {no:12,name:"都靈福星",code:"H165",jky:"楊明綸",draw:4,trn:"丁冠豪",rt:62,last6:"6/9/8/10/11/4",bt:"1.37.77"},
+  {no:13,name:"勁勇皇駒",code:"K157",jky:"金誠剛",draw:5,trn:"呂健威",rt:61,last6:"14/1/1/6/1/6",bt:"1.41.05"},
+  {no:14,name:"正義波",code:"K473",jky:"鍾易禮(-2)",draw:8,trn:"游達榮",rt:61,last6:"5/7/5",bt:"—"}
+ ],
+ 10:[
+  {no:1,name:"得道猴王",code:"J303",jky:"潘頓",draw:5,trn:"告東尼",rt:79,last6:"4/3/9/10/4/3",bt:"1.08.37"},
+  {no:2,name:"開心指數",code:"L152",jky:"黃寶妮(-7)",draw:7,trn:"文家良",rt:77,last6:"9/9/3/2/1/3",bt:"1.08.61"},
+  {no:3,name:"飲杯",code:"J219",jky:"霍宏聲",draw:13,trn:"大衛希斯",rt:73,last6:"11/4/14/9/6/7",bt:"1.08.53"},
+  {no:4,name:"電光高昇",code:"L375",jky:"布文",draw:6,trn:"韋達",rt:71,last6:"6",bt:"—"},
+  {no:5,name:"國千金",code:"L155",jky:"奧爾民",draw:8,trn:"黎昭昇",rt:70,last6:"10/9/7/7/1",bt:"1.09.20"},
+  {no:6,name:"堅先生",code:"L232",jky:"田泰安",draw:2,trn:"桂福特",rt:70,last6:"1/6/1",bt:"1.08.59"},
+  {no:7,name:"傑出雷霆",code:"L121",jky:"何澤堯",draw:11,trn:"呂健威",rt:70,last6:"11/1/2/4/3/5",bt:"1.08.82"},
+  {no:8,name:"健康快車",code:"H439",jky:"艾道拿",draw:3,trn:"蔡約翰",rt:67,last6:"7/5/11/6/2/3",bt:"1.08.44"},
+  {no:9,name:"千杯不醉",code:"K365",jky:"希威森",draw:9,trn:"廖康銘",rt:65,last6:"9/10/2/1/9/2",bt:"1.08.68"},
+  {no:10,name:"贏完又贏",code:"K512",jky:"鍾易禮(-2)",draw:14,trn:"沈集成",rt:63,last6:"12/11/12",bt:"1.09.83"},
+  {no:11,name:"香港仔",code:"L020",jky:"艾兆禮",draw:12,trn:"羅富全",rt:63,last6:"9/6/8/1/5/9",bt:"1.09.11"},
+  {no:12,name:"勝於藍",code:"K476",jky:"金誠剛",draw:10,trn:"伍鵬志",rt:62,last6:"14/14/11/10",bt:"1.09.82"},
+  {no:13,name:"銳喜",code:"L284",jky:"巫顯東(-2)",draw:4,trn:"徐雨石",rt:62,last6:"10/14",bt:"1.11.75"},
+  {no:14,name:"鈁糖武士",code:"G016",jky:"黃智弘(-3)",draw:1,trn:"方嘉柏",rt:61,last6:"9/9/9/7/3/10",bt:"1.09.10"}
+ ],
+ 11:[
+  {no:1,name:"飛馳九洲",code:"L283",jky:"奧爾民",draw:5,trn:"游達榮",rt:74,last6:"13",bt:"1.22.95"},
+  {no:2,name:"友瑩仁",code:"J180",jky:"艾兆禮",draw:10,trn:"伍鵬志",rt:73,last6:"1/4/1/1/2/6",bt:"1.20.85"},
+  {no:3,name:"潮州精神",code:"H175",jky:"黃寶妮(-7)",draw:6,trn:"文家良",rt:73,last6:"6/12/14/12/4/13",bt:"1.20.48"},
+  {no:4,name:"一世美麗",code:"K489",jky:"布浩榮",draw:1,trn:"蔡約翰",rt:73,last6:"7/3/3/2/1/9",bt:"1.21.09"},
+  {no:5,name:"金牌活力",code:"J402",jky:"田泰安",draw:3,trn:"桂福特",rt:72,last6:"9/8/3/8/8/1",bt:"1.21.37"},
+  {no:6,name:"綫路英雄",code:"J428",jky:"潘頓",draw:9,trn:"沈集成",rt:71,last6:"3/1/1/2",bt:"1.21.01"},
+  {no:7,name:"做好自己",code:"J444",jky:"布文",draw:7,trn:"呂健威",rt:70,last6:"3/2/2/3/3/3",bt:"1.21.14"},
+  {no:8,name:"風將",code:"L184",jky:"梁家俊",draw:8,trn:"巫偉傑",rt:70,last6:"13/7/10/7/12/10",bt:"1.22.80"},
+  {no:9,name:"正本巨星",code:"L056",jky:"莫雷拉",draw:2,trn:"方嘉柏",rt:69,last6:"10/8",bt:"1.22.95"},
+  {no:10,name:"勇霸龍",code:"J237",jky:"巴度",draw:11,trn:"黎昭昇",rt:67,last6:"4/3/1/3/3/6",bt:"1.21.78"},
+  {no:11,name:"黃金大亨",code:"L135",jky:"鍾易禮(-2)",draw:14,trn:"告東尼",rt:65,last6:"9/11/11/6/9",bt:"1.22.17"},
+  {no:12,name:"富國兄弟",code:"J396",jky:"蔡明紹",draw:13,trn:"葉楚航",rt:63,last6:"6/2/2/5/5/3",bt:"1.21.88"},
+  {no:13,name:"勁駿騰飛",code:"L314",jky:"楊明綸",draw:4,trn:"蘇偉賢",rt:63,last6:"10/4",bt:"1.22.94"},
+  {no:14,name:"龍虎精神",code:"L116",jky:"潘明輝",draw:12,trn:"羅富全",rt:60,last6:"8/12/13",bt:"—"}
+ ]
+};
+
+
+/* ============================================================
    賠率引擎（Option A）：每60秒嘗試自動更新；保留滾動歷史；
-   以「60 秒」窗計算跌幅%並依 §5 上色；無法讀取則回退 N/A。
+   以「5 分鐘」窗為主計算跌幅%並依 §5 上色（另列 15 分鐘及自開盤）；無法讀取則回退 N/A。
    重要：馬會已無公開賠率 JSON，靜態頁面受 CORS 限制，自動拉取未必成功；
-   「輸入賠率快照」為最可靠路徑（貼上真實賠率，系統打時戳並以60秒窗比較上色）。
+   「輸入賠率快照」為最可靠路徑（貼上真實賠率，系統打時戳並以5分鐘窗比較上色）。
    ============================================================ */
 const TZ = 'Asia/Hong_Kong';
 const RACE_DATE = '2026-06-27';
-const WINDOW_MIN = 1;                 // §5 比較窗：60 秒（1 分鐘）
-const PRUNE_MIN  = 4;                 // 歷史保留約 4 分鐘即足夠
-const TOL_MS     = 30*1000;           // 取「60 秒前」快照之容差 ±30 秒
+const RACE_VENUE = 'ST';
+const PRUNE_MIN  = 22;                // 保留約 22 分鐘明細，足夠計 5 及 15 分鐘窗
+const POSTTIMES  = {};               // raceNo -> ISO 開跑時間（由 Worker /card 自動填入）
+const OPEN_KEY   = 'st_odds_open_'+RACE_DATE;   // 自開盤總跌幅基準（每場每馬每池首見值）
+function loadOpen(){ try{return JSON.parse(localStorage.getItem(OPEN_KEY)||'{}')}catch(e){return{}} }
+function saveOpen(o){ try{localStorage.setItem(OPEN_KEY, JSON.stringify(o))}catch(e){} }
+function mergeOpen(snap){
+  const o=loadOpen();
+  for(const rn in snap.data){ o[rn]=o[rn]||{};
+    for(const hn in snap.data[rn]){ o[rn][hn]=o[rn][hn]||{}; const d=snap.data[rn][hn];
+      ['win','pla','qpl'].forEach(p=>{ if(d[p]!=null && o[rn][hn][p]==null) o[rn][hn][p]=d[p]; }); } }
+  saveOpen(o);
+}
 // 代理設定：若已填自建 Cloudflare Worker 網址，賠率與賽果均經 Worker（穩定）；
 // 否則賽果用公共代理盡力嘗試，賠率自動更新則無法成功（請用「輸入賠率快照」）。
 const DEFAULT_WORKER='https://hkjc-odds.claudeasiabc.workers.dev';   // 已內建代理，分享即用
@@ -361,7 +579,7 @@ function openProxyInput(){
   const cur=localStorage.getItem('st_worker')||'';
   const v=prompt(
     "貼上你的 Cloudflare Worker 網址（例：https://hkjc-odds.你的名.workers.dev）。\\n"+
-    "設定後會經此代理抓取『馬會官方即時賠率』，獨贏／位置／位置Q 便會每60秒自動更新並依60秒窗上色。\\n"+
+    "設定後會經此代理抓取『馬會官方即時賠率』，獨贏／位置／位置Q 便會每60秒自動更新並依5分鐘窗上色。\\n"+
     "留空＝清除設定。", cur);
   if(v===null) return;
   const url=v.trim().replace(/\/+$/,'');
@@ -384,11 +602,11 @@ function loadHist(){ try{return JSON.parse(localStorage.getItem(HIST_KEY)||'[]')
 function saveHist(h){ try{localStorage.setItem(HIST_KEY, JSON.stringify(h))}catch(e){} }
 function pruneHist(h){ const cut=Date.now()-PRUNE_MIN*60*1000; return h.filter(s=>s.t>=cut); }
 
-// 取約「minsAgo 分鐘前」最接近之快照（容差 TOL_MS）
-function snapshotAround(h, minsAgo){
+// 取約「minsAgo 分鐘前」最接近之快照（容差 tolMs）
+function snapshotAround(h, minsAgo, tolMs){
   const target = Date.now()-minsAgo*60*1000;
   let best=null,bd=Infinity;
-  for(const s of h){ const d=Math.abs(s.t-target); if(d<bd && d<=TOL_MS){bd=d;best=s;} }
+  for(const s of h){ const d=Math.abs(s.t-target); if(d<bd && d<=tolMs){bd=d;best=s;} }
   return best;
 }
 function dropColour(p){ if(p>=25)return'red'; if(p>=20)return'brown'; if(p>=10)return'green'; return''; }
@@ -439,36 +657,59 @@ async function refreshAll(){
   }
 }
 
-// 加入一筆快照（自動或手動共用），即時上色
+// 加入一筆快照（自動或手動共用）；保留全程明細＋記錄開盤基準，即時上色
 function addSnapshot(snap){
   let h=pruneHist(loadHist()); h.push(snap); saveHist(h);
+  mergeOpen(snap);
   document.getElementById('lastUpd').textContent =
     fmtHKTfull(new Date(snap.t))+' HKT'+(snap.src==='manual'?'（手動快照）':'（自動）');
   applyColours(h);
 }
 
-// 以最新快照 vs 60秒前快照，依 §5 上色
+function dropPct(old,cur){ return (old!=null && old>0 && cur!=null) ? (old-cur)/old*100 : null; }
+function seg(lbl,d){
+  if(d==null) return `<span class="wseg na">${lbl}–</span>`;
+  const arrow=d>=0?'▼':'▲';
+  const cls = d>=25?'r':d>=20?'b':d>=10?'g':(d<0?'up':'');
+  return `<span class="wseg ${cls}">${lbl}${arrow}${Math.abs(d).toFixed(0)}%</span>`;
+}
+
+// 以最新快照計算多窗跌幅：5 分鐘（主色）、15 分鐘、自開盤；§5 上色以 5 分鐘為準
 function applyColours(h){
-  const latest = h.length? h[h.length-1] : null;
-  const prev   = snapshotAround(h, WINDOW_MIN);
+  const latest = h.length ? h[h.length-1] : null;
+  const s5  = snapshotAround(h, 5,  90*1000);
+  const s15 = snapshotAround(h, 15, 150*1000);
+  const open = loadOpen();
   document.querySelectorAll('[data-odds]').forEach(td=>{
     const rn=+td.dataset.race, hn=+td.dataset.horse, pool=td.dataset.pool;
     const cur=getOdds(latest,rn,hn,pool);
     td.className='';
     if(cur==null){ td.innerHTML='<span class="na">N/A</span>'; return; }
-    let html=cur.toFixed(1);
-    if(prev){
-      const old=getOdds(prev,rn,hn,pool);
-      if(old!=null && old>0){
-        const drop=(old-cur)/old*100;
-        const c=dropColour(drop);
-        const sign=drop>=0?'−':'+';
-        const dot=drop>=25?' 🔴':drop>=20?' 🟤':drop>=10?' 🟢':'';
-        html=`${old.toFixed(1)} → ${cur.toFixed(1)} (${sign}${Math.abs(drop).toFixed(1)}%)${dot}`;
-        if(c) td.className='cell-'+c;
-      }
+    const d5  = dropPct(getOdds(s5,rn,hn,pool),  cur);
+    const d15 = dropPct(getOdds(s15,rn,hn,pool), cur);
+    const dO  = dropPct((open[rn]&&open[rn][hn]&&open[rn][hn][pool]!=null)?open[rn][hn][pool]:null, cur);
+    const c = d5!=null ? dropColour(d5) : '';
+    if(c) td.className='cell-'+c;
+    const dot = d5>=25?' 🔴':d5>=20?' 🟤':d5>=10?' 🟢':'';
+    td.innerHTML=`<b>${cur.toFixed(1)}</b>${dot}<div class="wmini">${seg('5m ',d5)} ${seg('15m ',d15)} ${seg('開 ',dO)}</div>`;
+  });
+  markMarket(latest);
+}
+// 實時「市場大熱」：按獨贏由細到大排，標出頭 5 位（自動更新，與分析 Top5 並存）
+function markMarket(latest){
+  RACES.forEach(r=>{
+    const field=FIELD[r.no]||r.top5;
+    field.forEach(h=>{ const el=document.getElementById('mkt_'+r.no+'_'+h.no); if(el){el.textContent='';el.className='mkt';} });
+    const strip=document.getElementById('mkt5_'+r.no);
+    const snapR = latest&&latest.data&&latest.data[r.no];
+    if(!snapR){ if(strip) strip.innerHTML='<b>市場大熱（實時·跟獨贏）：</b><span class="na">等待賠率…</span>'; return; }
+    const arr=Object.keys(snapR).map(no=>({no:+no,win:snapR[no].win}))
+      .filter(x=>x.win!=null&&!isNaN(x.win)).sort((a,b)=>a.win-b.win).slice(0,5);
+    arr.forEach((x,i)=>{ const el=document.getElementById('mkt_'+r.no+'_'+x.no); if(el){el.textContent='熱'+(i+1); el.className='mkt m'+(i+1);} });
+    if(strip){
+      const nmeOf=no=>{ const f=(FIELD[r.no]||[]).find(z=>z.no===no); return f?f.name:''; };
+      strip.innerHTML='<b>市場大熱（實時·跟獨贏）：</b>'+ (arr.length?arr.map((x,i)=>`<span class="t5">熱${i+1} #${x.no} ${nmeOf(x.no)} <i>${x.win.toFixed(1)}</i></span>`).join('') : '<span class="na">等待賠率…</span>');
     }
-    td.innerHTML=html;
   });
 }
 function getOdds(snap,rn,hn,pool){
@@ -476,13 +717,49 @@ function getOdds(snap,rn,hn,pool){
   const d=snap.data[rn][hn]; if(!d)return null; const v=d[pool]; return (v==null||isNaN(v))?null:v;
 }
 
-/* 手動賠率快照：貼上 CSV「場,馬號,獨贏,位置[,位置Q]」，打時戳儲存並以60秒窗上色 */
+/* ===== 自動開跑時間 + 倒數（task 1）===== */
+async function fetchCard(){
+  const base=workerBase(); if(!base) return;
+  try{
+    const res=await fetch(`${base}/card?date=${RACE_DATE}&venue=${RACE_VENUE}`,{cache:'no-store'});
+    const j=await res.json();
+    if(j && j.races){ j.races.forEach(rc=>{ if(rc.postTime) POSTTIMES[rc.no]=rc.postTime; }); updateCountdowns(); }
+  }catch(e){ /* 取唔到就用排位表硬編時間 */ }
+}
+function postTimeMs(no){
+  if(POSTTIMES[no]) { const t=Date.parse(POSTTIMES[no]); if(!isNaN(t)) return t; }
+  const r=RACES.find(x=>x.no===no); if(!r) return null;
+  const t=Date.parse(`${RACE_DATE}T${r.time}:00+08:00`); return isNaN(t)?null:t;
+}
+function fmtDur(ms){
+  const s=Math.max(0,Math.floor(ms/1000)), h=Math.floor(s/3600), m=Math.floor((s%3600)/60), ss=s%60;
+  return h>0 ? `${h}小時${String(m).padStart(2,'0')}分` : `${m}分${String(ss).padStart(2,'0')}秒`;
+}
+// 倒數＋狀態；臨場 30→15→5 分鐘重點標示
+function updateCountdowns(){
+  const now=Date.now();
+  RACES.forEach(r=>{
+    const el=document.getElementById('cd_'+r.no); if(!el) return;
+    if(RESULTS[r.no]){ el.className='cd done'; el.textContent='✓ 已完成'; return; }
+    const pt=postTimeMs(r.no);
+    if(pt==null){ el.className='cd'; el.textContent=''; return; }
+    const diff=pt-now, min=diff/60000;
+    if(diff<=0){ el.className='cd off'; el.textContent='● 已開跑／賽果待定'; return; }
+    let cls='cd', tag='距開跑';
+    if(min<=5){ cls='cd c5'; tag='臨場·賠率最後衝刺'; }
+    else if(min<=15){ cls='cd c15'; tag='賠率最劇烈'; }
+    else if(min<=30){ cls='cd c30'; tag='大戶入飛時段'; }
+    el.className=cls; el.textContent=`${tag} ${fmtDur(diff)}`;
+  });
+}
+
+/* 手動賠率快照：貼上 CSV「場,馬號,獨贏,位置[,位置Q]」，打時戳儲存並以5分鐘窗上色 */
 function openSnapInput(){
   const eg = "場,馬號,獨贏,位置,位置Q\\n1,4,3.0,1.5,\\n1,3,5.5,1.8,2.4\\n8,2,2.3,1.3,";
   const cur = prompt(
     "貼上賠率快照（CSV，每行：場,馬號,獨贏,位置,位置Q）\\n"+
     "・位置Q 可留空；可一次多場多馬。\\n"+
-    "・系統會以現在時間打時戳；隔約60秒再貼一次新賠率，即會比較並依規則上色。\\n\\n"+
+    "・系統會以現在時間打時戳；隔幾分鐘再貼一次新賠率，即會比較並依規則上色。\\n\\n"+
     "範例：\\n"+eg, "");
   if(!cur) return;
   const snap={t:Date.now(), src:'manual', data:{}};
@@ -498,7 +775,7 @@ function openSnapInput(){
   });
   if(!n){ alert('未能解析任何資料，請檢查格式。'); return; }
   addSnapshot(snap);
-  alert('已加入 '+n+' 筆賠率快照（'+fmtHKT(new Date(snap.t))+' HKT）。隔約60秒再貼新賠率即會上色比較。');
+  alert('已加入 '+n+' 筆賠率快照（'+fmtHKT(new Date(snap.t))+' HKT）。隔幾分鐘再貼新賠率即會上色比較。');
 }
 
 /* ============================================================
@@ -515,39 +792,41 @@ function placeBadge(pos){
   return ` <span class="tag" style="background:rgba(232,185,35,.14);color:${m[1]};border:1px solid ${m[1]}66">${m[0]}軍</span>`;
 }
 
+const CIRC=['','①','②','③','④','⑤'];
 function renderRaces(){
   const root=document.getElementById('races');
   root.innerHTML=RACES.map(r=>{
-    const favHorse=r.top5.find(h=>h.no===r.fav);
-    const favLabel=favHorse?`#${favHorse.no} ${favHorse.name}`:`#${r.fav}`;
-    const rows=r.top5.map(h=>{
-      const tag = h.tag==='tp'?'<span class="tag tp">首選</span>':(h.tag==='val'?'<span class="tag val">冷馬</span>':'');
-      const isFav=h.no===r.fav;
+    const t5=Object.fromEntries(r.top5.map(h=>[h.no,h]));
+    const field=(FIELD[r.no]||r.top5);
+    const rows=field.map(h=>{
+      const p=t5[h.no];                       // 若屬分析 Top5
       const pos=placeOf(r.no,h.no);
-      const qplCell = isFav
-        ? '<span class="na">—（即首選）</span>'
-        : `<span class="na" data-odds data-race="${r.no}" data-horse="${h.no}" data-pool="qpl">N/A</span>`;
-      return `<tr${pos?' style="background:rgba(232,185,35,.06)"':''}>
-        <td>${r.no}</td>
-        <td>${r.time}</td>
-        <td class="no ${h.tag==='tp'?'toppick':''}">${h.no}</td>
-        <td class="horse" onclick="openHorse(${r.no},${h.no})">${h.name}${tag}${placeBadge(pos)}</td>
-        <td><span class="winbar" style="width:${h.win*3}px"></span>${h.win}%</td>
+      const rankBadge = p?`<span class="rk">${CIRC[p.rk]||p.rk}</span>`:'';
+      const tag = p&&p.tag==='tp'?'<span class="tag tp">首選</span>':(p&&p.tag==='val'?'<span class="tag val">冷馬</span>':'');
+      const est = p?`<span class="winbar" style="width:${Math.max(6,p.win*3)}px"></span>${p.win}%`:'<span class="na">—</span>';
+      return `<tr class="${p?'pick':''}${pos?' placed':''}">
+        <td class="no">${h.no}<span class="mkt" id="mkt_${r.no}_${h.no}"></span></td>
+        <td class="horse" onclick="openHorse(${r.no},${h.no})">${rankBadge}${h.name}${tag}${placeBadge(pos)}</td>
+        <td>${est}</td>
         <td data-odds data-race="${r.no}" data-horse="${h.no}" data-pool="win"><span class="na">N/A</span></td>
         <td data-odds data-race="${r.no}" data-horse="${h.no}" data-pool="pla"><span class="na">N/A</span></td>
-        <td>${qplCell}</td>
+        <td data-odds data-race="${r.no}" data-horse="${h.no}" data-pool="qpl"><span class="na">N/A</span></td>
         <td>${pos?('<b style="color:var(--gold)">第'+pos+'名</b>'):'<span class="na">—</span>'}</td>
       </tr>`;
     }).join('');
     const tp=r.top5.find(h=>h.tag==='tp');
+    const t5strip=r.top5.map(h=>`<span class="t5">${CIRC[h.rk]} #${h.no} ${h.name} <i>${h.win}%</i>${h.tag==='tp'?' ★':''}</span>`).join('');
     return `<section class="race">
       <h2><span class="rno">第${r.no}場</span> ${r.name}
-        <span class="rtime">${r.time} HKT</span>
-        <span class="rmeta">${r.surface}${r.track!=='—'?'・'+r.track+'賽道':''}・${r.dist}・${r.going}・${r.cls}（${r.band}）・獎金 ${r.prize}</span></h2>
+        <span class="rtime" id="pt_${r.no}">${r.time} HKT</span>
+        <span class="cd" id="cd_${r.no}"></span>
+        <span class="rmeta">${r.surface}${r.track!=='—'?'・'+r.track+'賽道':''}・${r.dist}・${r.going}・${r.cls}（${r.band}）・獎金 ${r.prize}・${field.length}駒</span></h2>
+      <div class="strip"><b>分析 Top 5（固定）：</b>${t5strip}</div>
+      <div class="strip mkt5" id="mkt5_${r.no}"><b>市場大熱（實時·跟獨贏）：</b><span class="na">等待賠率…</span></div>
       <table>
         <thead><tr>
-          <th>場</th><th>開跑(HKT)</th><th>馬號</th><th>馬名</th><th>估算勝算</th>
-          <th>獨贏 (Δ60s)</th><th>位置 (Δ60s)</th><th>位置Q／首選 (Δ60s)</th><th>賽果名次</th>
+          <th>馬號</th><th>馬名（分析名次）</th><th>估算%</th>
+          <th>獨贏 ▼5m/15m/開</th><th>位置 ▼5m/15m/開</th><th>位置Q／大熱 ▼5m/15m/開</th><th>名次</th>
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>
@@ -555,7 +834,7 @@ function renderRaces(){
       <div class="note">
         <div class="row"><span class="lab">本場首選：</span>#${tp.no} ${tp.name}（${tp.jky}／估 ${tp.win}%）— ${tp.reason}</div>
         <div class="row"><span class="lab v">值博／冷馬：</span>#${r.value.no} ${r.value.name} — ${r.value.reason}</div>
-        <div class="row" style="color:var(--muted)"><span class="lab" style="color:var(--muted)">位置Q配搭：</span>各推介馬均與本場首選 ${favLabel} 配對顯示；🔴/🟤 急跌走勢以 60 秒窗計算，需有賠率快照方會標示。</div>
+        <div class="row" style="color:var(--muted)"><span class="lab" style="color:var(--muted)">說明：</span>全場 ${field.length} 駒均列實時賠率；高亮行＝分析 Top 5。位置Q 以實時大熱配對（大熱本身顯示 N/A）。🔴/🟤 急跌以 5 分鐘窗（另列 15 分鐘／開盤）。</div>
       </div>
     </section>`;
   }).join('');
@@ -589,8 +868,10 @@ function renderResultBlock(r){
 
 function openHorse(rno,hno){
   const r=RACES.find(x=>x.no===rno);
-  const h=r.top5.find(x=>x.no===hno);
-  if(!h)return;
+  const f=(FIELD[rno]||[]).find(x=>x.no===hno);
+  const p=r.top5.find(x=>x.no===hno);     // 分析資料（如屬 Top5）
+  const h=f||p; if(!h)return;
+  const link=h.code?horseUrlByCode(h.code):(p&&p.id?HORSE_URL(p.id):'#');
   document.getElementById('mTitle').innerHTML=
     `#${h.no} ${h.name} <span style="font-size:13px;color:var(--muted);font-weight:500">第${r.no}場・${r.dist}・${r.cls}</span><span class="x" id="mClose">×</span>`;
   document.getElementById('mClose').onclick=closeModal;
@@ -600,23 +881,24 @@ function openHorse(rno,hno){
       <div class="sh"><span class="dot"></span>馬會官方排位表（已核實）</div>
       <div class="sb">
         <div class="kv">
-          <span class="k">排名／估算勝算</span><span class="v">第 ${h.rk} 位 ・ 估 ${h.win}%</span>
+          <span class="k">本頁分析</span><span class="v">${p?('分析 Top5 第 '+p.rk+' 位 ・ 估 '+p.win+'%'+(p.tag==='tp'?'（首選）':p.tag==='val'?'（冷馬）':'')):'未列入分析 Top 5'}</span>
           <span class="k">騎師 / 練馬師</span><span class="v">${h.jky} ／ ${h.trn}</span>
-          <span class="k">檔位 / 負磅</span><span class="v">${h.draw} 檔 ／ ${h.wt} 磅</span>
+          <span class="k">檔位</span><span class="v">${h.draw} 檔${p?'　・負磅 '+p.wt:''}</span>
           <span class="k">評分</span><span class="v">${h.rt}（分段 ${r.band}）</span>
           <span class="k">近6仗往績</span><span class="v formstr">${h.last6}</span>
           <span class="k">最佳時間</span><span class="v">${h.bt}</span>
           <span class="k">場地</span><span class="v">${r.surface}${r.track!=='—'?'・'+r.track+'賽道':''}・${r.going}</span>
         </div>
-        <div style="margin-top:8px"><a href="${HORSE_URL(h.id)}" target="_blank" rel="noopener">↗ 馬會馬匹詳細往績頁</a></div>
+        <div style="margin-top:8px"><a href="${link}" target="_blank" rel="noopener">↗ 馬會馬匹詳細往績頁</a></div>
       </div>
     </div>
 
     <div class="src">
       <div class="sh"><span class="dot"></span>本頁分析（方法 §3 綜合評估）</div>
       <div class="sb">
-        <div style="margin-bottom:6px">${h.reason}</div>
-        <div style="color:var(--muted);font-size:12px">綜合：近績穩定度、評分相對分段、檔位適性、騎練往績、路程／賽道適應、最佳時間（速度指標）。此為相對機率估算，並非保證。</div>
+        ${p?`<div style="margin-bottom:6px">${p.reason}</div>
+        <div style="color:var(--muted);font-size:12px">綜合：近績穩定度、評分相對分段、檔位適性、騎練往績、路程／賽道適應、最佳時間（速度指標）。此為相對機率估算，並非保證。</div>`
+          :`<div style="color:var(--muted)">此駒不在本頁分析 Top 5。可參考上表全場實時賠率及「市場大熱」判斷市場取向（賠率急跌 🔴 代表有資金支持）。</div>`}
       </div>
     </div>
 
@@ -628,7 +910,7 @@ function openHorse(rno,hno){
           <span class="k">位置</span><span class="v"><span class="na">N/A</span></span>
           <span class="k">位置Q（與 #${favHorse?favHorse.no:r.fav} ${favHorse?favHorse.name:''} 配）</span><span class="v">${h.no===r.fav?'—（即首選）':'<span class="na">N/A</span>'}</span>
         </div>
-        <div style="color:var(--muted);font-size:12px;margin-top:6px">馬會已無公開賠率介面，靜態頁自動拉取未必成功；可用「輸入賠率快照」貼上真實賠率，系統以 <b>60 秒</b>窗計算跌幅並依 §5 上色。</div>
+        <div style="color:var(--muted);font-size:12px;margin-top:6px">馬會已無公開賠率介面，靜態頁自動拉取未必成功；可用「輸入賠率快照」貼上真實賠率，系統以 <b>5 分鐘</b>窗為主計算跌幅並依 §5 上色（另列 15 分鐘及自開盤總跌幅）。</div>
       </div>
     </div>
 
@@ -714,9 +996,9 @@ async function refreshResults(){
   let got=0;
   for(const r of RACES){
     try{ const R=await fetchResult(r.no); if(R&&R.placings.length>=3){ RESULTS[r.no]=R; got++; } }
-    catch(e){ /* 未開跑／解析不到／代理失敗 → 略過，保留已有（含 R1 已核實） */ }
+    catch(e){ /* 未開跑／解析不到／代理失敗 → 略過 */ }
   }
-  renderRaces(); applyColours(pruneHist(loadHist()));
+  renderRaces(); applyColours(pruneHist(loadHist())); updateCountdowns();
   btn.textContent=old;
   alert(got?('已更新／確認 '+got+' 場賽果（'+fmtHKT(new Date())+' HKT）。未開跑或未公佈者維持「未有賽果」。')
            :('暫未能自動取得新賽果（代理或來源限制）。已核實之賽果（如第1場）維持顯示；可按官方賽果連結查看。'));
@@ -733,9 +1015,11 @@ document.getElementById('resultBtn').onclick=refreshResults;
 updateProxyPill();
 function tickClock(){ document.getElementById('clock').textContent=fmtHKT(new Date())+' HKT'; }
 tickClock(); setInterval(tickClock,1000);
-applyColours(pruneHist(loadHist()));   // 載入時套用既有手動快照
+applyColours(pruneHist(loadHist()));
 refreshAll(); setInterval(refreshAll,60*1000);
-refreshResults();                       // 載入時嘗試自動取賽果（best-effort）
+refreshResults();
+fetchCard(); setInterval(fetchCard,5*60*1000);
+updateCountdowns(); setInterval(updateCountdowns,1000);
 </script>
 </body>
 </html>
