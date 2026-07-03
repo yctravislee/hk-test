@@ -921,6 +921,13 @@ async function fetchResult(raceno){
   });
   if(placings.length<3) throw new Error('incomplete placings');
 
+  // 防呆：勝出馬必須與本場官方排位相符，否則視為來源回傳咗其他賽事／賽日資料，拒絕
+  const fieldR = FIELD[raceno]||[];
+  if(fieldR.length){
+    const w = fieldR.find(x=>x.no===placings[0].no);
+    if(!w || w.name!==placings[0].name) throw new Error('winner mismatch — not this race');
+  }
+
   // 派彩表：跨行沿用上一個彩池名稱
   let win=null, pla=[], qpl=[];
   let ptable=null;
@@ -948,6 +955,8 @@ async function refreshResults(silent){
   const btn=document.getElementById('resultBtn'); const old=btn.textContent; if(btn) btn.textContent='更新賽果中…';
   let got=0;
   for(const r of RACES){
+    const pt=postTimeMs(r.no);
+    if(pt && Date.now() < pt - 60*1000){ continue; }   // 未到開跑時間，不可能有賽果 → 跳過
     try{ const R=await fetchResult(r.no); if(R&&R.placings.length>=3){ RESULTS[r.no]=R; got++; } }
     catch(e){ /* 未開跑／解析不到／代理失敗 → 略過 */ }
   }
@@ -970,9 +979,9 @@ function tickClock(){ document.getElementById('clock').textContent=fmtHKT(new Da
 tickClock(); setInterval(tickClock,1000);
 applyColours(pruneHist(loadHist()));
 refreshAll(); setInterval(refreshAll,60*1000);
-refreshResults(true); setInterval(()=>refreshResults(true),3*60*1000);   // 每3分鐘自動更新賽果（靜默）
-fetchCard(); setInterval(fetchCard,5*60*1000);          // 自動抓開跑時間
-updateCountdowns(); setInterval(updateCountdowns,1000); // 每秒更新倒數／狀態
+refreshResults(true); setInterval(()=>refreshResults(true),3*60*1000);
+fetchCard(); setInterval(fetchCard,5*60*1000);
+updateCountdowns(); setInterval(updateCountdowns,1000);
 </script>
 </body>
 </html>
